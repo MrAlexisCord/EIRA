@@ -1,7 +1,14 @@
 using EIRA.Application;
+using EIRA.Application.Statics;
 using EIRA.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add HttpClientServices
+
+// Set Static External APIs URLs
+ExternalEndpoint.JiraAPIBaseV3 = builder.Configuration["ExternalAPIUrls:JiraAPIV3"];
+
 
 // Add services to the container.
 builder.Services.AddApplicationServices();

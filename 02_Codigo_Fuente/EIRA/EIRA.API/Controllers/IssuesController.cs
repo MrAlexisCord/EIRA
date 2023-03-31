@@ -20,7 +20,7 @@ namespace EIRA.API.Controllers
 
                 var command = new UploadIssuesCommand() { FileStream = stream };
 
-                return Ok(Mediator.Send(command));
+                return Ok(await Mediator.Send(command));
             }
         }
     }
