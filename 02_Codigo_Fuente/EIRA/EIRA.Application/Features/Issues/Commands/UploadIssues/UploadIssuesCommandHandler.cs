@@ -1,4 +1,5 @@
-﻿using EIRA.Application.Models.Files.Incoming;
+﻿using EIRA.Application.Extensions;
+using EIRA.Application.Models.Files.Incoming;
 using EIRA.Application.Services.Files;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -19,12 +20,13 @@ namespace EIRA.Application.Features.Issues.Commands.UploadIssues
 
         public async Task<List<IssuesIncomingFile>> Handle(UploadIssuesCommand request, CancellationToken cancellationToken)
         {
-            var sheetName = "DATOS";
-            var headers = new string[] { "IDENTIFICADOR", "NOMBRE", "DESCRIPCION", };
             _logger.LogInformation("10001: Start cast excel rows into a list...");
+            
+            var sheetName = "Select v_sandra_casos_dia";
+            var headers= PropertyExtension.GetReportHeadersDictionary<IssuesIncomingFile>();
             var response = _excelService.ReadExcel<IssuesIncomingFile>(request.FileStream, sheetName, headers);
+            
             _logger.LogTrace("10001: End process...");
-
 
             return response;
         }

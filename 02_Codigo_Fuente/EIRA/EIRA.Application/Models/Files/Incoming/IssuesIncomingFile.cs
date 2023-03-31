@@ -1,9 +1,43 @@
-﻿namespace EIRA.Application.Models.Files.Incoming
+﻿using EIRA.Application.Attributes;
+
+namespace EIRA.Application.Models.Files.Incoming
 {
     public class IssuesIncomingFile
     {
-        public long IDENTIFICADOR { get; set; }
-        public string NOMBRE { get; set; }
-        public string DESCRIPCION { get; set; }
+        [ReportHeader("TIPO_CASO")]
+        public string TipoCaso { get; set; }
+
+        [ReportHeader("NO_CASO")]
+        public string NumeroCaso { get; set; }
+
+        [ReportHeader("ASUNTO")]
+        public string Summary { get; set; }
+
+        [ReportHeader("GESTIONADO_POR")]
+        public string GestionadoPor { get; set; }
+
+        [ReportHeader("FECHA_DE_REGISTRO")]
+        public DateTime FechaRegistro { get; set; }
+
+        [ReportHeader("ESTADO")]
+        public string Estado { get; set; }
+
+        [ReportHeader("SERVICIO")]
+        public string Servicio { get; set; }
+
+        [ReportHeader("RESPONSABLE")]
+        public string Responsable { get; set; }
+
+        [ReportHeader("RAZON")]
+        public string Razon { get; set; }
+
+        [ReportHeader("URGENCIA")]
+        public string Urgencia { get; set; }
+
+        [ReportHeader("GRUPO")]
+        public string Grupo { get; set; }
+
+        [ReportHeader("COMPANIA")]
+        public string Compania { get; set; }
     }
 }

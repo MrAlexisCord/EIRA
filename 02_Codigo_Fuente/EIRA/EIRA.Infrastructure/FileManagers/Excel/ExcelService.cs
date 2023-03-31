@@ -5,8 +5,7 @@ namespace EIRA.Infrastructure.FileManagers.Excel
 {
     public class ExcelService : IExcelService
     {
-
-        public List<T> ReadExcel<T>(Stream stream, string sheetName, string[] headers) where T : new()
+        public List<T> ReadExcel<T>(Stream stream, string sheetName, Dictionary<string, string> headers) where T : new()
         {
             var list = new List<T>();
 
@@ -16,17 +15,17 @@ namespace EIRA.Infrastructure.FileManagers.Excel
                 var headerRow = worksheet.Row(1);
                 var headerColumns = new Dictionary<string, int>();
 
-                // Encuentra el índice de las columnas de las cabeceras especificadas
+                // Find colmun indexes from specified headers
                 for (int i = 1; i <= headerRow.CellsUsed().Count(); i++)
                 {
                     var cellValue = headerRow.Cell(i).Value.ToString();
-                    if (headers.Contains(cellValue))
+                    if (headers.Select(x => x.Value).Contains(cellValue))
                     {
                         headerColumns[cellValue] = i;
                     }
                 }
 
-                // Recorre las filas para construir la lista de objetos
+                // Iterate rows for build the list of objects
                 for (int i = 2; i <= worksheet.Rows().Count(); i++)
                 {
                     var obj = new T();
@@ -34,7 +33,7 @@ namespace EIRA.Infrastructure.FileManagers.Excel
 
                     foreach (var prop in typeof(T).GetProperties())
                     {
-                        if (headerColumns.TryGetValue(prop.Name, out int columnIndex))
+                        if (headerColumns.TryGetValue(headers[prop.Name], out int columnIndex))
                         {
                             var cellValue = row.Cell(columnIndex).GetString();
 
