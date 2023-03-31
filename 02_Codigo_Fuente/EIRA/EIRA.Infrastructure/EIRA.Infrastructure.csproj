@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.100.3" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\EIRA.Application\EIRA.Application.csproj" />
   </ItemGroup>
 
