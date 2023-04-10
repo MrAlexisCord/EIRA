@@ -28,11 +28,11 @@ namespace EIRA.Application.Features.Issues.Commands.UploadIssues
         public async Task<List<IssuesIncomingFile>> Handle(UploadIssuesCommand request, CancellationToken cancellationToken)
         {
             _logger.LogInformation("10001: Start cast excel rows into a list...");
-            
+
             var sheetName = "Select v_sandra_casos_dia";
-            var headers= PropertyExtension.GetReportHeadersDictionary<IssuesIncomingFile>();
+            var headers = PropertyExtension.GetReportHeadersDictionary<IssuesIncomingFile>();
             var response = _excelService.ReadExcel<IssuesIncomingFile>(request.FileStream, sheetName, headers);
-            var res = await _issuesJiraRepository.PostIssues(response);
+            var res = await _issuesJiraRepository.PostIssues(response.Where(x => x.NumeroCaso.HasValue && x.NumeroCaso > 0)?.ToList());
             _logger.LogTrace("10001: End process...");
 
             return response;

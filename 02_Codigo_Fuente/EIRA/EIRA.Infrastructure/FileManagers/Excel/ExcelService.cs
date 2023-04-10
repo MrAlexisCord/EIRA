@@ -33,14 +33,23 @@ namespace EIRA.Infrastructure.FileManagers.Excel
 
                     foreach (var prop in typeof(T).GetProperties())
                     {
-                        if (headerColumns.TryGetValue(headers[prop.Name], out int columnIndex))
+                        try
                         {
-                            var cellValue = row.Cell(columnIndex).GetString();
-
-                            if (cellValue != null)
+                            if (headerColumns.TryGetValue(headers[prop.Name], out int columnIndex))
                             {
-                                prop.SetValue(obj, Convert.ChangeType(cellValue, prop.PropertyType));
+                                var cellValue = row.Cell(columnIndex).GetString();
+
+                                if (cellValue != null)
+                                {
+                                    var convertionType = Nullable.GetUnderlyingType(prop.PropertyType);
+                                    prop.SetValue(obj, Convert.ChangeType(cellValue, convertionType is not null ? convertionType : prop.PropertyType));
+                                }
                             }
+                        }
+                        catch (Exception ex)
+                        {
+
+                            //throw;
                         }
                     }
 

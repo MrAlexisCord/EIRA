@@ -15,7 +15,6 @@ namespace EIRA.Application
             services.AddMediatR(conf =>
             {
                 conf.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
-                //conf.RegisterServicesFromAssemblies(Assembly.GetExecutingAssembly());
             });
 
         }

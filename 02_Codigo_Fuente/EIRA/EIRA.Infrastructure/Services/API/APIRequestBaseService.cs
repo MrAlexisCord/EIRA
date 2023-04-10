@@ -12,6 +12,8 @@ namespace EIRA.Infrastructure.Services.API
         public ExternalResponseModel ResponseModel { get; set; }
         public IHttpClientFactory httpClient { get; set; }
 
+        private string Token { get; set; }
+
         public APIRequestBaseService(IHttpClientFactory httpClient)
         {
             this.ResponseModel = new ExternalResponseModel();
@@ -32,12 +34,11 @@ namespace EIRA.Infrastructure.Services.API
                     message.Content = new StringContent(JsonConvert.SerializeObject(apiRequest.Data), Encoding.UTF8, "application/json");
                 }
 
-                //apiRequest.AccessToken = "Basic Y2VzYXIuZmlndWVyb2FAb2xzb2Z0d2FyZS5jb206QVRBVFQzeEZmR0YwQTQ4Tm5rUk1lTFJlYW8wNldRQnk5M3BzTTZoWW9IdmxhUW9tQ0NHWlFLZzlFUW53OU4yYVlWQW1fQjdPaUlsWmpQbmhUbjhJUXVPc0w5RzctbG5pQmVDbkdvek1jUW40VmluQUZfckptQXowdl90Z2pQZ0lJWmJhN0V2SDhYbzl6bVNTSEJhRFEzX0tKcW5UVG1JYTRmbUdnVFJjbVpLbkF4UTlyM3Zja0VrPTIwRkIwM0I4";
-                apiRequest.AccessToken = "Y2VzYXIuZmlndWVyb2FAb2xzb2Z0d2FyZS5jb206QVRBVFQzeEZmR0YwQTQ4Tm5rUk1lTFJlYW8wNldRQnk5M3BzTTZoWW9IdmxhUW9tQ0NHWlFLZzlFUW53OU4yYVlWQW1fQjdPaUlsWmpQbmhUbjhJUXVPc0w5RzctbG5pQmVDbkdvek1jUW40VmluQUZfckptQXowdl90Z2pQZ0lJWmJhN0V2SDhYbzl6bVNTSEJhRFEzX0tKcW5UVG1JYTRmbUdnVFJjbVpLbkF4UTlyM3Zja0VrPTIwRkIwM0I4";
+                ////Token = "Y2VzYXIuZmlndWVyb2FAb2xzb2Z0d2FyZS5jb206QVRBVFQzeEZmR0YwQTQ4Tm5rUk1lTFJlYW8wNldRQnk5M3BzTTZoWW9IdmxhUW9tQ0NHWlFLZzlFUW53OU4yYVlWQW1fQjdPaUlsWmpQbmhUbjhJUXVPc0w5RzctbG5pQmVDbkdvek1jUW40VmluQUZfckptQXowdl90Z2pQZ0lJWmJhN0V2SDhYbzl6bVNTSEJhRFEzX0tKcW5UVG1JYTRmbUdnVFJjbVpLbkF4UTlyM3Zja0VrPTIwRkIwM0I4";
 
-                if (!string.IsNullOrEmpty(apiRequest.AccessToken))
+                if (!string.IsNullOrEmpty(Token))
                 {
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", apiRequest.AccessToken);
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Token);
                 }
 
                 HttpResponseMessage apiResponse = null;
@@ -86,6 +87,11 @@ namespace EIRA.Infrastructure.Services.API
         public void Dispose()
         {
             GC.SuppressFinalize(true);
+        }
+
+        public void SetTokenValue(string newToken)
+        {
+            Token = newToken;
         }
     }
 }

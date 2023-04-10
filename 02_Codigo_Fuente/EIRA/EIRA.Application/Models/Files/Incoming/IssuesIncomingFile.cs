@@ -8,7 +8,7 @@ namespace EIRA.Application.Models.Files.Incoming
         public string TipoCaso { get; set; }
 
         [ReportHeader("NO_CASO")]
-        public string NumeroCaso { get; set; }
+        public int? NumeroCaso { get; set; }
 
         [ReportHeader("ASUNTO")]
         public string Summary { get; set; }

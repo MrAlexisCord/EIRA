@@ -5,7 +5,7 @@ namespace EIRA.Application.Models.External.JiraV3
     public class IssueCreateRequest
     {
         [JsonProperty("project")]
-        public Assignee Project { get; set; }
+        public IdentifiableProp Project { get; set; }
 
         [JsonProperty("summary")]
         public string Summary { get; set; }
@@ -14,26 +14,40 @@ namespace EIRA.Application.Models.External.JiraV3
         public Description Description { get; set; }
 
         [JsonProperty("issuetype")]
-        public Assignee Issuetype { get; set; }
+        public IdentifiableProp Issuetype { get; set; }
 
         [JsonProperty("parent")]
-        public Assignee Parent { get; set; }
+        public IdentifiableProp Parent { get; set; }
 
         [JsonProperty("assignee")]
-        public Assignee Assignee { get; set; }
+        public IdentifiableProp Assignee { get; set; }
 
         [JsonProperty("priority")]
-        public Priority Priority { get; set; }
+        public NameableProp Priority { get; set; }
+
+        [JsonProperty("customfield_10063")]
+        public ValuableProp Compania { get; set; }
+
+        [JsonProperty("customfield_10065")]
+        public ValuableProp ResponsableCliente { get; set; }
+
+        [JsonProperty("customfield_10066")]
+        public DateTime FechaAsignacionAranda { get; set; }
+
+        [JsonProperty("customfield_10067")]
+        public ValuableProp Frente { get; set; }
 
         [JsonProperty("customfield_10068")]
-        public string Customfield10068 { get; set; }
+        public int NumeroAranda { get; set; }
+
+        [JsonProperty("customfield_10064")]
+        public IdentifiableProp Gravedad { get; set; }
+
+        [JsonProperty("customfield_10069")]
+        public IdentifiableProp GravedadDesarrollo { get; set; }
+
     }
 
-    public partial class Assignee
-    {
-        [JsonProperty("id")]
-        public string Id { get; set; }
-    }
 
     public partial class Description
     {
@@ -65,9 +79,21 @@ namespace EIRA.Application.Models.External.JiraV3
         public string Type { get; set; }
     }
 
-    public partial class Priority
+    public class ValuableProp
+    {
+        [JsonProperty("value")]
+        public string Value { get; set; }
+    }
+
+    public class NameableProp
     {
         [JsonProperty("name")]
         public string Name { get; set; }
+    }
+
+    public class IdentifiableProp
+    {
+        [JsonProperty("id")]
+        public string Id { get; set; }
     }
 }

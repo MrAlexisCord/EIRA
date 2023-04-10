@@ -1,5 +1,4 @@
-﻿using DocumentFormat.OpenXml.Office2010.Excel;
-using EIRA.Application.Models.External;
+﻿using EIRA.Application.Models.External;
 using EIRA.Application.Models.External.JiraV3;
 using EIRA.Application.Services.API.JiraAPIV3;
 using EIRA.Application.Statics;
