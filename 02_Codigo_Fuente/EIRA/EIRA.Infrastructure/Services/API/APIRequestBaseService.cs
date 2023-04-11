@@ -1,31 +1,36 @@
-﻿using EIRA.Application.Models.External;
+﻿using EIRA.Application.DTOs;
+using EIRA.Application.Models.External;
+using EIRA.Application.Services;
 using EIRA.Application.Services.API;
 using EIRA.Application.Statics;
+using EIRA.Application.Statics.CacheKeys;
 using Newtonsoft.Json;
 using System.Net.Http.Headers;
 using System.Text;
 
 namespace EIRA.Infrastructure.Services.API
 {
-    public class APIRequestBaseService: IAPIRequestBaseService
+    public class APIRequestBaseService : IAPIRequestBaseService
     {
         public ExternalResponseModel ResponseModel { get; set; }
         public IHttpClientFactory httpClient { get; set; }
 
-        private string Token { get; set; }
+        private readonly ICacheService _cacheService;
 
-        public APIRequestBaseService(IHttpClientFactory httpClient)
+
+        public APIRequestBaseService(IHttpClientFactory httpClient, ICacheService cacheService)
         {
             this.ResponseModel = new ExternalResponseModel();
             this.httpClient = httpClient;
+            _cacheService = cacheService;
         }
 
-        public async Task<T> SendAsync<T>(ApiRequest apiRequest)
+        public async Task<T> SendAsync<T>(ApiRequest apiRequest, bool authRequest = false)
         {
             try
             {
                 var client = httpClient.CreateClient("JiraAPI");
-                HttpRequestMessage message = new HttpRequestMessage();
+                var message = new HttpRequestMessage();
                 message.Headers.Add("Accept", "application/json");
                 message.RequestUri = new Uri(apiRequest.Url);
                 client.DefaultRequestHeaders.Clear();
@@ -34,30 +39,36 @@ namespace EIRA.Infrastructure.Services.API
                     message.Content = new StringContent(JsonConvert.SerializeObject(apiRequest.Data), Encoding.UTF8, "application/json");
                 }
 
-                ////Token = "Y2VzYXIuZmlndWVyb2FAb2xzb2Z0d2FyZS5jb206QVRBVFQzeEZmR0YwQTQ4Tm5rUk1lTFJlYW8wNldRQnk5M3BzTTZoWW9IdmxhUW9tQ0NHWlFLZzlFUW53OU4yYVlWQW1fQjdPaUlsWmpQbmhUbjhJUXVPc0w5RzctbG5pQmVDbkdvek1jUW40VmluQUZfckptQXowdl90Z2pQZ0lJWmJhN0V2SDhYbzl6bVNTSEJhRFEzX0tKcW5UVG1JYTRmbUdnVFJjbVpLbkF4UTlyM3Zja0VrPTIwRkIwM0I4";
-
-                if (!string.IsNullOrEmpty(Token))
+                var credentials = string.Empty;
+                if (!authRequest)
                 {
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Token);
+                    var userInfo = _cacheService.GetByKey<UserInfoDTO>(AuthCacheKeys.USER_INFO);
+                    if (userInfo is not null && !string.IsNullOrEmpty(userInfo.UserName) && !string.IsNullOrEmpty(userInfo.JiraAPIKey))
+                    {
+                        credentials = $"{userInfo.UserName}:{userInfo.JiraAPIKey}";
+                    }
+                }
+                else
+                {
+                    credentials = apiRequest.StringRequest;
+                }
+
+                if (!string.IsNullOrEmpty(credentials))
+                {
+                    var encodedCredentials = Encoding.UTF8.GetBytes(credentials);
+                    var token = Convert.ToBase64String(encodedCredentials);
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", token);
                 }
 
                 HttpResponseMessage apiResponse = null;
 
-                switch (apiRequest.ApiType)
+                message.Method = apiRequest.ApiType switch
                 {
-                    case ExternalEndpoint.ApiType.POST:
-                        message.Method = HttpMethod.Post;
-                        break;
-                    case ExternalEndpoint.ApiType.PUT:
-                        message.Method = HttpMethod.Put;
-                        break;
-                    case ExternalEndpoint.ApiType.DELETE:
-                        message.Method = HttpMethod.Delete;
-                        break;
-                    default:
-                        message.Method = HttpMethod.Get;
-                        break;
-                }
+                    ExternalEndpoint.ApiType.POST => HttpMethod.Post,
+                    ExternalEndpoint.ApiType.PUT => HttpMethod.Put,
+                    ExternalEndpoint.ApiType.DELETE => HttpMethod.Delete,
+                    _ => HttpMethod.Get,
+                };
 
                 apiResponse = await client.SendAsync(message);
 
@@ -87,11 +98,6 @@ namespace EIRA.Infrastructure.Services.API
         public void Dispose()
         {
             GC.SuppressFinalize(true);
-        }
-
-        public void SetTokenValue(string newToken)
-        {
-            Token = newToken;
         }
     }
 }

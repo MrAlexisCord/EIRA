@@ -63,7 +63,19 @@ namespace EIRA.Application.Mappings.Transforms
                 {
                     Value = source.GestionadoPor
                 },
+                // FechaRegistroAranda = new DateTime(year: 2019, month: 9, day: 2).ToUniversalTime(),
+                // FechaRegistroAranda = FormattedStringToDateTime(source.FechaRegistro),
+                FechaRegistroAranda = source.FechaRegistro.ToUniversalTime(),
+                EstadoAranda = $"{source.Estado} - ${source.Razon}",
+                Grupo = source.Grupo?.Split("-")?.LastOrDefault()?.Trim() ?? string.Empty,
+                SistemaCargue = "EIRA",
+
             };
+
+            //if (source.FechaRegistro.HasValue)
+            //{
+            //    output.FechaRegistroAranda = source.FechaRegistro;
+            //}
 
             switch (caseType)
             {
@@ -90,7 +102,8 @@ namespace EIRA.Application.Mappings.Transforms
             if (string.IsNullOrEmpty(tipoCaso) || tipoCaso.Trim() == string.Empty)
                 return CaseTypeIssueEnum.None;
 
-            return tipoCaso.ToUpper().Contains("INCIDEN") ? CaseTypeIssueEnum.Incident : CaseTypeIssueEnum.Development;
+            return tipoCaso.ToUpper().Contains("REQUERIMIENTO") ? CaseTypeIssueEnum.Development : CaseTypeIssueEnum.Incident;
+            // return tipoCaso.ToUpper().Contains("INCIDEN") ? CaseTypeIssueEnum.Incident : CaseTypeIssueEnum.Development;
         }
 
         private static string GetIssueTypeId(string tipoCaso)
@@ -128,6 +141,19 @@ namespace EIRA.Application.Mappings.Transforms
                 "CRITICA" or "CRITICO" => "10141",
                 _ => null,
             };
+        }
+
+        private static DateTime FormattedStringToDateTime(string fecha)
+        {
+            if (DateTime.TryParseExact(fecha, "dd/MM/yyyy hh:mm:ss tt",
+                                       null, System.Globalization.DateTimeStyles.None, out DateTime fechaDateTime))
+            {
+                return fechaDateTime;
+            }
+            else
+            {
+                throw new ArgumentException("Formato de fecha no válido: " + fecha);
+            }
         }
     }
 }

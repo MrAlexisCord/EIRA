@@ -17,7 +17,7 @@ namespace EIRA.Application.Models.Files.Incoming
         public string GestionadoPor { get; set; }
 
         [ReportHeader("FECHA_DE_REGISTRO")]
-        public string FechaRegistro { get; set; }
+        public DateTime FechaRegistro { get; set; }
 
         [ReportHeader("ESTADO")]
         public string Estado { get; set; }

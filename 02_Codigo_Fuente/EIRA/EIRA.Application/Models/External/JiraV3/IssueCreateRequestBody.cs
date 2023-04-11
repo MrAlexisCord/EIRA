@@ -16,9 +16,6 @@ namespace EIRA.Application.Models.External.JiraV3
         [JsonProperty("issuetype")]
         public IdentifiableProp Issuetype { get; set; }
 
-        [JsonProperty("parent")]
-        public IdentifiableProp Parent { get; set; }
-
         [JsonProperty("assignee")]
         public IdentifiableProp Assignee { get; set; }
 
@@ -45,6 +42,18 @@ namespace EIRA.Application.Models.External.JiraV3
 
         [JsonProperty("customfield_10069")]
         public IdentifiableProp GravedadDesarrollo { get; set; }
+
+        [JsonProperty("customfield_10080")]
+        public string SistemaCargue { get; set; }
+
+        [JsonProperty("customfield_10081")]
+        public DateTime FechaRegistroAranda { get; set; }
+
+        [JsonProperty("customfield_10082")]
+        public string EstadoAranda { get; set; }
+
+        [JsonProperty("customfield_10083")]
+        public string Grupo { get; set; }
 
     }
 

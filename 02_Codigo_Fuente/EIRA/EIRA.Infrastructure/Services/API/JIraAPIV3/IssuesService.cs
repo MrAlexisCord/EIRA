@@ -1,5 +1,6 @@
 ﻿using EIRA.Application.Models.External;
 using EIRA.Application.Models.External.JiraV3;
+using EIRA.Application.Services;
 using EIRA.Application.Services.API.JiraAPIV3;
 using EIRA.Application.Statics;
 using static EIRA.Application.Statics.ExternalEndpoint;
@@ -8,9 +9,8 @@ namespace EIRA.Infrastructure.Services.API.JIraAPIV3
 {
     public class IssuesService : APIRequestBaseService, IIssuesService
     {
-        public IssuesService(IHttpClientFactory httpClient) : base(httpClient)
+        public IssuesService(IHttpClientFactory httpClient, ICacheService cacheService) : base(httpClient, cacheService)
         {
-
         }
 
         public async Task<T> Create<T>(BaseFieldsPostBodyRequest<IssueCreateRequest> issueBody, string token)
@@ -20,7 +20,6 @@ namespace EIRA.Infrastructure.Services.API.JIraAPIV3
                 ApiType = ApiType.POST,
                 Data = issueBody,
                 Url = $"{ExternalEndpoint.JiraAPIBaseV3}/issue",
-                AccessToken = token,
             });
         }
 
@@ -30,7 +29,7 @@ namespace EIRA.Infrastructure.Services.API.JIraAPIV3
             {
                 ApiType = ApiType.GET,
                 Url = $"{ExternalEndpoint.JiraAPIBaseV3}/{idOrKey}",
-                AccessToken = token,
+                //AccessToken = token,
             });
         }
     }

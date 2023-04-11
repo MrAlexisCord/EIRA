@@ -1,9 +1,11 @@
 ﻿using EIRA.API.Controllers.Common;
 using EIRA.Application.Features.Issues.Commands.UploadIssues;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EIRA.API.Controllers
 {
+    [Authorize]
     public class IssuesController : BaseController
     {
 
