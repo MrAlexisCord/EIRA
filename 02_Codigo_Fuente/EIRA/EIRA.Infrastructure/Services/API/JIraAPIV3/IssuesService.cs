@@ -28,8 +28,7 @@ namespace EIRA.Infrastructure.Services.API.JIraAPIV3
             return await this.SendAsync<T>(new ApiRequest
             {
                 ApiType = ApiType.GET,
-                Url = $"{ExternalEndpoint.JiraAPIBaseV3}/{idOrKey}",
-                //AccessToken = token,
+                Url = $"{ExternalEndpoint.JiraAPIBaseV3}/issue/{idOrKey}",
             });
         }
     }

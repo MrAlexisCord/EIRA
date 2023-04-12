@@ -13,7 +13,7 @@ ExternalEndpoint.JiraAPIBaseV3 = builder.Configuration["ExternalAPIUrls:JiraAPIV
 
 
 // Add services to the container.
-builder.Services.AddApplicationServices();
+builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddInfrastructureService(builder.Configuration);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

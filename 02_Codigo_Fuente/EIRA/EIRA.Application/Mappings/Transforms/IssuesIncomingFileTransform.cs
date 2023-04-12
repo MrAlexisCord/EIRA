@@ -1,21 +1,21 @@
 ﻿using EIRA.Application.Models.External.JiraV3;
 using EIRA.Application.Models.Files.Incoming;
 using EIRA.Application.Statics.Enumerations;
+using EIRA.Application.Statics.Jira;
+using System.Security.Cryptography.X509Certificates;
 
 namespace EIRA.Application.Mappings.Transforms
 {
     public static class IssuesIncomingFileTransform
     {
-        public static IssueCreateRequest ToIssueCreateRequest(this IssuesIncomingFile source)
+        public static IssueCreateRequest ToIssueCreateRequest(this IssuesIncomingFile source, List<KeyValueList> responsibleList, KeyValueList defaultResponsible)
         {
-            // Anay Id Account: 6229183c302c6b006af604be
-
             var caseType = GetCaseType(source.TipoCaso);
             var output = new IssueCreateRequest
             {
                 Assignee = new IdentifiableProp
                 {
-                    Id = "557058:8032e131-f9c8-4080-a44e-1e707323b32a"
+                    Id = JiraConfiguration.Asignado
                 },
                 Description = new Description
                 {
@@ -38,7 +38,7 @@ namespace EIRA.Application.Mappings.Transforms
                 },
                 Project = new IdentifiableProp
                 {
-                    Id = "10000"
+                    Id = JiraConfiguration.ProyectoId
                 },
                 Summary = source.Summary,
                 Issuetype = new IdentifiableProp
@@ -57,39 +57,26 @@ namespace EIRA.Application.Mappings.Transforms
                 {
                     Value = "CEO"
                 },
-                NumeroAranda = source.NumeroCaso.Value,
+                NumeroAranda = source.NumeroCaso,
                 FechaAsignacionAranda = DateTime.UtcNow,
                 ResponsableCliente = new ValuableProp
                 {
-                    Value = source.GestionadoPor
+                    Value = GetResponsable(source.GestionadoPor, responsibleList, defaultResponsible),
                 },
-                // FechaRegistroAranda = new DateTime(year: 2019, month: 9, day: 2).ToUniversalTime(),
-                // FechaRegistroAranda = FormattedStringToDateTime(source.FechaRegistro),
+
                 FechaRegistroAranda = source.FechaRegistro.ToUniversalTime(),
                 EstadoAranda = $"{source.Estado} - ${source.Razon}",
                 Grupo = source.Grupo?.Split("-")?.LastOrDefault()?.Trim() ?? string.Empty,
                 SistemaCargue = "EIRA",
-
             };
-
-            //if (source.FechaRegistro.HasValue)
-            //{
-            //    output.FechaRegistroAranda = source.FechaRegistro;
-            //}
 
             switch (caseType)
             {
                 case CaseTypeIssueEnum.Incident:
+                case CaseTypeIssueEnum.Development:
                     output.Gravedad = new IdentifiableProp
                     {
                         Id = GetIdGravedad(source.Urgencia),
-                    };
-                    break;
-
-                case CaseTypeIssueEnum.Development:
-                    output.GravedadDesarrollo = new IdentifiableProp
-                    {
-                        Id = GetIdGravedadDesarrollo(source.Urgencia),
                     };
                     break;
             }
@@ -103,7 +90,6 @@ namespace EIRA.Application.Mappings.Transforms
                 return CaseTypeIssueEnum.None;
 
             return tipoCaso.ToUpper().Contains("REQUERIMIENTO") ? CaseTypeIssueEnum.Development : CaseTypeIssueEnum.Incident;
-            // return tipoCaso.ToUpper().Contains("INCIDEN") ? CaseTypeIssueEnum.Incident : CaseTypeIssueEnum.Development;
         }
 
         private static string GetIssueTypeId(string tipoCaso)
@@ -112,48 +98,33 @@ namespace EIRA.Application.Mappings.Transforms
 
             return caseType switch
             {
-                CaseTypeIssueEnum.Incident => "10009",
-                CaseTypeIssueEnum.Development => "10010",
+                CaseTypeIssueEnum.Incident => JiraConfiguration.IssueTypes.Incidente,
+                CaseTypeIssueEnum.Development => JiraConfiguration.IssueTypes.Desarrollo,
                 _ => null,
             };
         }
 
         private static string GetIdGravedad(string urgencia)
         {
-            return urgencia.ToUpper() switch
-            {
-                "BAJA" or "BAJO" => "10120",
-                "MEDIA" or "MEDIO" => "10119",
-                "ALTA" or "ALTO" => "10118",
-                "CRITICA" or "CRITICO" => "10117",
-                _ => null,
-            };
+            if (string.IsNullOrEmpty(urgencia))
+                return null;
+
+            var gravedad = JiraConfiguration.Gravedades.FirstOrDefault(x => x.Urgencias.Contains(urgencia.ToUpper()));
+            return gravedad.GravedadId;
         }
 
-        private static string GetIdGravedadDesarrollo(string urgencia)
-        {
-            return urgencia.ToUpper() switch
-            {
-                "NO APLICA" or "NO APLICO" => "10140",
-                "BAJA" or "BAJO" => "10144",
-                "MEDIA" or "MEDIO" => "10143",
-                "ALTA" or "ALTO" => "10142",
-                "CRITICA" or "CRITICO" => "10141",
-                _ => null,
-            };
-        }
 
-        private static DateTime FormattedStringToDateTime(string fecha)
+        private static string GetResponsable(string gestionadoPor, List<KeyValueList> responsibleList, KeyValueList defaultResponsible)
         {
-            if (DateTime.TryParseExact(fecha, "dd/MM/yyyy hh:mm:ss tt",
-                                       null, System.Globalization.DateTimeStyles.None, out DateTime fechaDateTime))
-            {
-                return fechaDateTime;
-            }
-            else
-            {
-                throw new ArgumentException("Formato de fecha no válido: " + fecha);
-            }
+            if (string.IsNullOrEmpty(gestionadoPor) || string.IsNullOrEmpty(gestionadoPor.Trim()))
+                return defaultResponsible.Value;
+
+            var responsibleExists = responsibleList.Any(x => x.Value.ToUpper() == (gestionadoPor).ToUpper());
+
+            if (responsibleExists)
+                return responsibleList.FirstOrDefault(x => x.Value.ToUpper() == (gestionadoPor).ToUpper()).Value;
+
+            return defaultResponsible.Value;
         }
     }
 }

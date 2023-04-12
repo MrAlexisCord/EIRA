@@ -1,7 +1,7 @@
 ﻿using EIRA.Application.Contracts.Persistence;
+using EIRA.Application.Contracts.Persistence.CacheRepository;
 using EIRA.Application.Extensions;
 using EIRA.Application.Models.Files.Incoming;
-using EIRA.Application.Services.API.JiraAPIV3;
 using EIRA.Application.Services.Files;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -32,7 +32,19 @@ namespace EIRA.Application.Features.Issues.Commands.UploadIssues
             var sheetName = "Select v_sandra_casos_dia";
             var headers = PropertyExtension.GetReportHeadersDictionary<IssuesIncomingFile>();
             var response = _excelService.ReadExcel<IssuesIncomingFile>(request.FileStream, sheetName, headers);
-            var res = await _issuesJiraRepository.PostIssues(response.Where(x => x.NumeroCaso.HasValue && x.NumeroCaso > 0)?.ToList());
+
+            var validIssuesList = response?.Where(x => 
+            (!string.IsNullOrEmpty(x.NumeroCaso) && !string.IsNullOrEmpty(x.NumeroCaso.Trim()))
+            && x.Grupo.ToUpper().Contains("OLSOFT"));
+
+            if (validIssuesList is not null && validIssuesList.Any())
+            {
+                var res = await _issuesJiraRepository.PostIssues(validIssuesList.ToList());
+            }
+            else
+            {
+                _logger.LogTrace("10001: Not valid issues found...");
+            }
             _logger.LogTrace("10001: End process...");
 
             return response;

@@ -34,14 +34,11 @@ namespace EIRA.Application.Models.External.JiraV3
         [JsonProperty("customfield_10067")]
         public ValuableProp Frente { get; set; }
 
-        [JsonProperty("customfield_10068")]
-        public int NumeroAranda { get; set; }
+        [JsonProperty("customfield_10084")]
+        public string NumeroAranda { get; set; }
 
         [JsonProperty("customfield_10064")]
         public IdentifiableProp Gravedad { get; set; }
-
-        [JsonProperty("customfield_10069")]
-        public IdentifiableProp GravedadDesarrollo { get; set; }
 
         [JsonProperty("customfield_10080")]
         public string SistemaCargue { get; set; }
