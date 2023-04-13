@@ -10,6 +10,5 @@ namespace EIRA.Application.Statics.Jira
         public static string ResponsableCustomFieldId { get; set; }
         public static IssueTypeConfigModel IssueTypes { get; set; }
         public static List<GravedadConfigModel> Gravedades { get; set; }
-        public static List<GravedadConfigModel> GravedadesDesarrollo { get; set; }
     }
 }

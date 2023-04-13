@@ -1,8 +1,8 @@
 ﻿using EIRA.Application.Models.External.JiraV3;
+using EIRA.Application.Models.External.JiraV3.TypeOfPropertiesClasses;
 using EIRA.Application.Models.Files.Incoming;
 using EIRA.Application.Statics.Enumerations;
 using EIRA.Application.Statics.Jira;
-using System.Security.Cryptography.X509Certificates;
 
 namespace EIRA.Application.Mappings.Transforms
 {
@@ -65,7 +65,7 @@ namespace EIRA.Application.Mappings.Transforms
                 },
 
                 FechaRegistroAranda = source.FechaRegistro.ToUniversalTime(),
-                EstadoAranda = $"{source.Estado} - ${source.Razon}",
+                EstadoAranda = $"{source.Estado} - {source.Razon}",
                 Grupo = source.Grupo?.Split("-")?.LastOrDefault()?.Trim() ?? string.Empty,
                 SistemaCargue = "EIRA",
             };

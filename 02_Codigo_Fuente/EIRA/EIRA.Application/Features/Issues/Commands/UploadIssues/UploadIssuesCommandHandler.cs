@@ -1,14 +1,15 @@
 ﻿using EIRA.Application.Contracts.Persistence;
-using EIRA.Application.Contracts.Persistence.CacheRepository;
 using EIRA.Application.Extensions;
 using EIRA.Application.Models.Files.Incoming;
+using EIRA.Application.Models.LogModels;
 using EIRA.Application.Services.Files;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 
 namespace EIRA.Application.Features.Issues.Commands.UploadIssues
 {
-    public class UploadIssuesCommandHandler : IRequestHandler<UploadIssuesCommand, List<IssuesIncomingFile>>
+    public class UploadIssuesCommandHandler : IRequestHandler<UploadIssuesCommand, List<JiraUploadIssueErrorLog>>
     {
 
         private readonly ILogger<UploadIssuesCommandHandler> _logger;
@@ -25,8 +26,9 @@ namespace EIRA.Application.Features.Issues.Commands.UploadIssues
             _issuesJiraRepository = issuesJiraRepository;
         }
 
-        public async Task<List<IssuesIncomingFile>> Handle(UploadIssuesCommand request, CancellationToken cancellationToken)
+        public async Task<List<JiraUploadIssueErrorLog>> Handle(UploadIssuesCommand request, CancellationToken cancellationToken)
         {
+            var logRespose = new List<JiraUploadIssueErrorLog>();
             _logger.LogInformation("10001: Start cast excel rows into a list...");
 
             var sheetName = "Select v_sandra_casos_dia";
@@ -40,6 +42,7 @@ namespace EIRA.Application.Features.Issues.Commands.UploadIssues
             if (validIssuesList is not null && validIssuesList.Any())
             {
                 var res = await _issuesJiraRepository.PostIssues(validIssuesList.ToList());
+                logRespose = res;
             }
             else
             {
@@ -47,7 +50,7 @@ namespace EIRA.Application.Features.Issues.Commands.UploadIssues
             }
             _logger.LogTrace("10001: End process...");
 
-            return response;
+            return logRespose;
         }
     }
 }

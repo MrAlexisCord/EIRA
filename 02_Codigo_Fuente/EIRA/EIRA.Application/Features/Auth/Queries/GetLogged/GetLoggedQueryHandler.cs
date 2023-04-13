@@ -26,7 +26,7 @@ namespace EIRA.Application.Features.Auth.Queries.GetLogged
             var response = await _authCacheRepository.GetUserInfoInCache(new AuthLoginRequestBody { UserName = request.UserName, JiraApiKey = request.JiraApiKey });
             if (response is null)
             {
-                throw new Exception(message: "Bad Authenticate Request");
+                throw new Exception(message: "Imposible autenticarse");
             }
 
             var authResponse = _tokenService.ConstruirToken(response, request.GetApiKeyJwt());

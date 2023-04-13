@@ -6,6 +6,7 @@ using EIRA.Application.Services;
 using EIRA.Application.Services.API;
 using EIRA.Application.Services.API.JiraAPIV3;
 using EIRA.Application.Services.Files;
+using EIRA.Infrastructure.FileManagers.CSV;
 using EIRA.Infrastructure.FileManagers.Excel;
 using EIRA.Infrastructure.Repositories.Auth;
 using EIRA.Infrastructure.Repositories.Auth.CacheRepository;
@@ -27,17 +28,19 @@ namespace EIRA.Infrastructure
             services.AddMemoryCache();
             services.AddScoped<ICacheService, CacheService>();
 
-            // Excel Service
+            // File Services
             services.AddScoped<IExcelService, ExcelService>();
+            services.AddScoped<ICSVService, CSVService>();
 
             // Token Service
             services.AddScoped<ITokenService, TokenService>();
 
-            // Services and repositories
+            // HttpClient for services
             services.AddHttpClient<IIssuesService, IssuesService>();
             services.AddHttpClient<IAuthService, AuthService>();
             services.AddHttpClient<IResponsibleService, ResponsibleService>();
 
+            // Services and repositories
             services.AddScoped<IIssuesService, IssuesService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IResponsibleService, ResponsibleService>();

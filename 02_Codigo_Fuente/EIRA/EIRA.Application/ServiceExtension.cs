@@ -30,7 +30,6 @@ namespace EIRA.Application
             JiraConfiguration.ResponsableCustomFieldId = configuration["JiraConfiguration:ResponsableCustomFieldId"];
             JiraConfiguration.IssueTypes = configuration.GetSection("JiraConfiguration:IssueTypes").Get<IssueTypeConfigModel>();
             JiraConfiguration.Gravedades = configuration.GetSection("JiraConfiguration:Gravedades").Get<List<GravedadConfigModel>>();
-            JiraConfiguration.GravedadesDesarrollo = configuration.GetSection("JiraConfiguration:GravedadesDesarrollo").Get<List<GravedadConfigModel>>();
         }
     }
 }

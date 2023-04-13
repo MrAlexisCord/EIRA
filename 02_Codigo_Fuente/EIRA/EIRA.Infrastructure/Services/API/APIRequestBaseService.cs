@@ -1,4 +1,5 @@
 ﻿using EIRA.Application.DTOs;
+using EIRA.Application.Exceptions;
 using EIRA.Application.Models.External;
 using EIRA.Application.Services;
 using EIRA.Application.Services.API;
@@ -77,21 +78,17 @@ namespace EIRA.Infrastructure.Services.API
                 var apiResponseDto = JsonConvert.DeserializeObject<T>(apiContent);
 
                 return apiResponseDto;
-
-
             }
             catch (Exception ex)
             {
-                var dto = new ExternalResponseModel
+                var externalApiException = new ExternalApiException(message: "Error on Jira Request")
                 {
-                    DisplayMessage = "Error",
                     ErrorMessages = new List<string> { Convert.ToString(ex.Message) },
                     IsSuccess = false
                 };
+                externalApiException.Result = ex;
 
-                var res = JsonConvert.SerializeObject(dto);
-                var apiResponseDto = JsonConvert.DeserializeObject<T>(res);
-                return apiResponseDto;
+                throw externalApiException;
             }
         }
 

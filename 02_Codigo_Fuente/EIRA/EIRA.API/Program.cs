@@ -11,7 +11,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Set Static External APIs URLs
 ExternalEndpoint.JiraAPIBaseV3 = builder.Configuration["ExternalAPIUrls:JiraAPIV3"];
 
-
 // Add services to the container.
 builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddInfrastructureService(builder.Configuration);
@@ -62,8 +61,10 @@ builder.Services.AddSwaggerGen(c =>
 var devCorsPolicy = "devCorsPolicy";
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(devCorsPolicy, builder => {
+    options.AddPolicy(devCorsPolicy, builder =>
+    {
         builder.WithOrigins("*").AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+        //builder.WithExposedHeaders("content-disposition", "attachments");
         builder.WithExposedHeaders("content-disposition");
         builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
         builder.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost");

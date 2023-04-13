@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using EIRA.Application.Models.External.JiraV3.TypeOfPropertiesClasses;
+using Newtonsoft.Json;
 
 namespace EIRA.Application.Models.External.JiraV3
 {
@@ -51,55 +52,5 @@ namespace EIRA.Application.Models.External.JiraV3
 
         [JsonProperty("customfield_10083")]
         public string Grupo { get; set; }
-
-    }
-
-
-    public partial class Description
-    {
-        [JsonProperty("content")]
-        public List<DescriptionContent> Content { get; set; }
-
-        [JsonProperty("type")]
-        public string Type { get; set; }
-
-        [JsonProperty("version")]
-        public long Version { get; set; }
-    }
-
-    public partial class DescriptionContent
-    {
-        [JsonProperty("content")]
-        public List<ContentContent> Content { get; set; }
-
-        [JsonProperty("type")]
-        public string Type { get; set; }
-    }
-
-    public partial class ContentContent
-    {
-        [JsonProperty("text")]
-        public string Text { get; set; }
-
-        [JsonProperty("type")]
-        public string Type { get; set; }
-    }
-
-    public class ValuableProp
-    {
-        [JsonProperty("value")]
-        public string Value { get; set; }
-    }
-
-    public class NameableProp
-    {
-        [JsonProperty("name")]
-        public string Name { get; set; }
-    }
-
-    public class IdentifiableProp
-    {
-        [JsonProperty("id")]
-        public string Id { get; set; }
-    }
+    } 
 }
