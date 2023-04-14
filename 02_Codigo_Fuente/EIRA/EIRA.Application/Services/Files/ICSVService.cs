@@ -2,6 +2,6 @@
 {
     public interface ICSVService
     {
-        string WriteCSV<T>(string fileName, string[] propertyNames, List<T> items = null) where T : class;
+        string WriteCSV<T>(List<T> items, string[] propertyNames, string fileName, string separator = null) where T : class;
     }
 }

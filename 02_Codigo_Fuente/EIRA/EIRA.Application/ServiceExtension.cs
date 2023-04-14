@@ -1,6 +1,8 @@
-﻿using EIRA.Application.Models.Configuration;
+﻿using EIRA.Application.Behaviours;
+using EIRA.Application.Models.Configuration;
 using EIRA.Application.Statics.Jira;
 using FluentValidation;
+using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
@@ -20,6 +22,9 @@ namespace EIRA.Application
 
             // Load Jira Configuration
             SetJiraConfiguration(configuration);
+
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(UnhandledExceptionBehaviour<,>));
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
         }
 
         public static void SetJiraConfiguration(IConfiguration configuration)

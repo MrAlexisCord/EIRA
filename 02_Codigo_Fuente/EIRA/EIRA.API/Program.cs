@@ -1,3 +1,4 @@
+using EIRA.API.Extensions;
 using EIRA.Application;
 using EIRA.Application.Statics;
 using EIRA.Infrastructure;
@@ -64,7 +65,6 @@ builder.Services.AddCors(options =>
     options.AddPolicy(devCorsPolicy, builder =>
     {
         builder.WithOrigins("*").AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
-        //builder.WithExposedHeaders("content-disposition", "attachments");
         builder.WithExposedHeaders("content-disposition");
         builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
         builder.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost");
@@ -81,9 +81,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+
 app.UseCors(devCorsPolicy);
 
 app.UseHttpsRedirection();
+
+app.UseErrorHandlingMiddleware();
 
 app.UseAuthentication();
 
