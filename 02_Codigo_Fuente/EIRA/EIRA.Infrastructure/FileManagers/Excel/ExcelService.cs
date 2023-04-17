@@ -5,13 +5,15 @@ namespace EIRA.Infrastructure.FileManagers.Excel
 {
     public class ExcelService : IExcelService
     {
-        public List<T> ReadExcel<T>(Stream stream, string sheetName, Dictionary<string, string> headers) where T : new()
+        public List<T> ReadExcel<T>(Stream stream, Dictionary<string, string> headers, int? pageNumber = null) where T : new()
         {
             var list = new List<T>();
 
+            pageNumber ??= 1;
+
             using (var workbook = new XLWorkbook(stream))
             {
-                var worksheet = workbook.Worksheet(sheetName);
+                var worksheet = workbook.Worksheet(1);
                 var headerRow = worksheet.Row(1);
                 var headerColumns = new Dictionary<string, int>();
 

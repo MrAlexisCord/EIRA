@@ -2,6 +2,6 @@
 {
     public interface IExcelService
     {
-        List<T> ReadExcel<T>(Stream stream, string sheetName, Dictionary<string, string> headers) where T : new();
+        List<T> ReadExcel<T>(Stream stream, Dictionary<string, string> headers, int? pageNumber = null) where T : new();
     }
 }

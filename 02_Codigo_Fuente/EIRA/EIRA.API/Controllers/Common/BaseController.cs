@@ -12,7 +12,7 @@ namespace EIRA.API.Controllers.Common
         private IMediator _mediator;
         protected IMediator Mediator => _mediator ??= HttpContext.RequestServices.GetService<IMediator>();
 
-        
+
         protected IActionResult DownloadCSVFile(string filePath, string fileName)
         {
             if (!System.IO.File.Exists(filePath))
@@ -21,6 +21,11 @@ namespace EIRA.API.Controllers.Common
             }
 
             byte[] fileBytes = System.IO.File.ReadAllBytes(filePath);
+            try
+            {
+                System.IO.File.Delete(filePath);
+            }
+            catch (Exception) { }
 
             var contentDisposition = new ContentDispositionHeaderValue("attachment")
             {

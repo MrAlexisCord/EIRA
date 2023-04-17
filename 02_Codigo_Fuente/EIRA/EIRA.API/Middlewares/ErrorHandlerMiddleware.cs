@@ -1,4 +1,5 @@
 ﻿using EIRA.Application.Exceptions;
+using EIRA.Application.Extensions;
 using EIRA.Application.Wrappers;
 using System.Net;
 using System.Text.Json;
@@ -28,7 +29,13 @@ namespace EIRA.API.Middlewares
 
                 switch (error)
                 {
-                    case NotFoundException notFoundException:
+                    case NullFileException e:
+                        response.StatusCode = (int)HttpStatusCode.BadRequest;
+                        responseModel.Errors = e.Message.ValueToOneItemList();
+
+                        break;
+
+                    case NotFoundException:
                         response.StatusCode = (int)HttpStatusCode.NotFound;
                         break;
                     case ApiException e:
@@ -42,7 +49,7 @@ namespace EIRA.API.Middlewares
                         responseModel.Errors = e.Errors;
                         break;
 
-                    case KeyNotFoundException e:
+                    case KeyNotFoundException:
                         //not found error
                         response.StatusCode = (int)HttpStatusCode.NotFound;
                         break;

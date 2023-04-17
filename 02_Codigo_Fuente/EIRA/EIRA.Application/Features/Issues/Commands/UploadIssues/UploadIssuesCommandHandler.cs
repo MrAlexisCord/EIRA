@@ -1,27 +1,21 @@
 ﻿using EIRA.Application.Contracts.Persistence;
+using EIRA.Application.Exceptions;
 using EIRA.Application.Extensions;
 using EIRA.Application.Models.Files.Incoming;
 using EIRA.Application.Models.LogModels;
 using EIRA.Application.Services.Files;
 using MediatR;
-using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
 
 namespace EIRA.Application.Features.Issues.Commands.UploadIssues
 {
     public class UploadIssuesCommandHandler : IRequestHandler<UploadIssuesCommand, List<JiraUploadIssueErrorLog>>
     {
-
-        private readonly ILogger<UploadIssuesCommandHandler> _logger;
         private readonly IExcelService _excelService;
         private readonly IIssuesJiraRepository _issuesJiraRepository;
 
-        public UploadIssuesCommandHandler(ILogger<UploadIssuesCommandHandler> logger,
-            IExcelService excelService
-,
+        public UploadIssuesCommandHandler(IExcelService excelService,
             IIssuesJiraRepository issuesJiraRepository)
         {
-            _logger = logger;
             _excelService = excelService;
             _issuesJiraRepository = issuesJiraRepository;
         }
@@ -29,26 +23,22 @@ namespace EIRA.Application.Features.Issues.Commands.UploadIssues
         public async Task<List<JiraUploadIssueErrorLog>> Handle(UploadIssuesCommand request, CancellationToken cancellationToken)
         {
             var logRespose = new List<JiraUploadIssueErrorLog>();
-            _logger.LogInformation("10001: Start cast excel rows into a list...");
 
-            var sheetName = "Select v_sandra_casos_dia";
             var headers = PropertyExtension.GetReportHeadersDictionary<IssuesIncomingFile>();
-            var response = _excelService.ReadExcel<IssuesIncomingFile>(request.FileStream, sheetName, headers);
+            var response = _excelService.ReadExcel<IssuesIncomingFile>(request.FileStream, headers);
 
-            var validIssuesList = response?.Where(x => 
+            var validIssuesList = response?.Where(x =>
             (!string.IsNullOrEmpty(x.NumeroCaso) && !string.IsNullOrEmpty(x.NumeroCaso.Trim()))
             && x.Grupo.ToUpper().Contains("OLSOFT"));
 
             if (validIssuesList is not null && validIssuesList.Any())
             {
-                var res = await _issuesJiraRepository.PostIssues(validIssuesList.ToList());
-                logRespose = res;
+                logRespose = await _issuesJiraRepository.PostIssues(validIssuesList.ToList());
             }
             else
             {
-                _logger.LogTrace("10001: Not valid issues found...");
+                throw new NullFileException("El archivo no contiene issues válidos para la operación");
             }
-            _logger.LogTrace("10001: End process...");
 
             return logRespose;
         }
