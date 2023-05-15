@@ -36,6 +36,30 @@ namespace EIRA.API.Controllers.Common
 
             return File(fileBytes, ContentTypes.PLAIN_TEXT);
         }
+
+        protected IActionResult DownloadExcelFile(string filePath, string fileName)
+        {
+            if (!System.IO.File.Exists(filePath))
+            {
+                return NotFound();
+            }
+
+            byte[] fileBytes = System.IO.File.ReadAllBytes(filePath);
+            try
+            {
+                System.IO.File.Delete(filePath);
+            }
+            catch (Exception) { }
+
+            var contentDisposition = new ContentDispositionHeaderValue("attachment")
+            {
+                FileName = fileName,
+            };
+            Response.Headers.Add("Content-Disposition", contentDisposition.ToString());
+            Response.Headers.Add("Content-Type", ContentTypes.EXCEL);
+
+            return File(fileBytes, ContentTypes.EXCEL);
+        }
     }
 
 }

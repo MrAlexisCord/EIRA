@@ -7,6 +7,7 @@ using EIRA.Application.Models.External.JiraV3;
 using EIRA.Application.Models.Files.Incoming;
 using EIRA.Application.Models.LogModels;
 using EIRA.Application.Services.API.JiraAPIV3;
+using EIRA.Application.Statics.Enumerations;
 using EIRA.Application.Statics.Operations;
 
 namespace EIRA.Infrastructure.Repositories.Persistence
@@ -24,7 +25,7 @@ namespace EIRA.Infrastructure.Repositories.Persistence
             _mapper = mapper;
         }
 
-        public async Task<List<JiraUploadIssueErrorLog>> PostIssues(List<IssuesIncomingFile> source)
+        public async Task<List<JiraUploadIssueErrorLog>> PostIssuesAsync(List<IssuesIncomingFile> source, RequestTypeTarget requestTypeTarget)
         {
             var logsError = new List<JiraUploadIssueErrorLog>();
 
@@ -36,8 +37,9 @@ namespace EIRA.Infrastructure.Repositories.Persistence
 
                 foreach (var issue in source)
                 {
-                    var body = issue.ToIssueCreateRequest(responsibleList, defaultResponsible);
-                    var issuesInJiraByAranda = await this.GetIssueByAranda(body.NumeroAranda);
+                    var body = issue.ToIssueCreateRequest(responsibleList, defaultResponsible, requestTypeTarget);
+                    var comentarios = issue.Comentarios;
+                    var issuesInJiraByAranda = await this.GetIssueByArandaAsync(body.NumeroAranda);
 
                     if (issuesInJiraByAranda is not null && issuesInJiraByAranda.Any())
                     {
@@ -46,7 +48,7 @@ namespace EIRA.Infrastructure.Repositories.Persistence
                     }
                     else
                     {
-                        await CreateProcess(body, issuesInJiraByAranda, logsError);
+                        await CreateProcess(body, logsError, comentarios);
                     }
                 }
             }
@@ -54,7 +56,7 @@ namespace EIRA.Infrastructure.Repositories.Persistence
             return logsError;
         }
 
-        public async Task<List<MinimalIssue>> GetIssueByAranda(string aranda)
+        public async Task<List<MinimalIssue>> GetIssueByArandaAsync(string aranda)
         {
             var response = await _issuesService.IssueByArandaNumber<BaseIssuesJiraResult<List<MinimalIssue>>>(aranda);
             if (response is null || response.Total < 1 || response.Issues is null || !response.Issues.Any())
@@ -63,11 +65,37 @@ namespace EIRA.Infrastructure.Repositories.Persistence
             return response.Issues;
         }
 
-        private async Task CreateProcess(IssueCreateRequest body, List<MinimalIssue> issuesInJiraByAranda, List<JiraUploadIssueErrorLog> logsError)
+        private async Task CreateProcess(IssueCreateRequest body, List<JiraUploadIssueErrorLog> logsError, string comentarios = null)
         {
             try
             {
-                //var response = await _issuesService.Create<object>(new BaseFieldsPostBodyRequest<IssueCreateRequest> { Fields = body }, "");
+                FieldCreateValidation(body, logsError);
+                var response = await _issuesService.Create<IssueCreatedResponse>(new BaseFieldsPostBodyRequest<IssueCreateRequest> { Fields = body }, "");
+                if (!string.IsNullOrEmpty(comentarios) && !string.IsNullOrEmpty(comentarios.Trim()))
+                {
+                    var comentariosList = comentarios.Split("\n").Select(comentario =>
+                    {
+                        var dateString = comentario?.Split(":")?[0];
+                        var fechaComentario = DateTime.UtcNow;
+                        if (dateString is not null)
+                        {
+                            var resultDate = DateTime.TryParse(dateString, out DateTime fechaComentarioNuevo);
+
+                            if (resultDate)
+                            {
+                                fechaComentario = fechaComentarioNuevo;
+                            }
+                        }
+
+                        return new { Fecha = fechaComentario, Comentario = comentario };
+                    }).OrderBy(x => x.Fecha).Select(x => x.Comentario);
+
+
+                    foreach (var comentario in comentariosList)
+                    {
+                        await CommentOnIssue(response.Key, comentario);
+                    }
+                }
             }
             catch (ExternalApiException ex)
             {
@@ -92,6 +120,60 @@ namespace EIRA.Infrastructure.Repositories.Persistence
             }
         }
 
+        private int FieldCreateValidation(IssueCreateRequest body, List<JiraUploadIssueErrorLog> logsError)
+        {
+            var errors = 0;
+            var campos = new List<string>();
+            if (string.IsNullOrEmpty(body.Frente?.Value.Trim()))
+            {
+                campos.Add("Frente");
+                errors++;
+            }
+
+            if (string.IsNullOrEmpty(body.Compania?.Value.Trim()))
+            {
+                campos.Add("Compañia");
+                errors++;
+            }
+
+            if (string.IsNullOrEmpty(body.ResponsableCliente?.Value.Trim()) || body.ResponsableCliente?.Value == "Responsable no asignado")
+            {
+                campos.Add("Responsable Cliente");
+                errors++;
+            }
+
+            if (string.IsNullOrEmpty(body.DescripcionEstadoCliente?.Content?.FirstOrDefault()?.Content.FirstOrDefault()?.Text?.Trim()))
+            {
+                campos.Add("Descripción Estado Cliente");
+                errors++;
+            }
+
+            if (!body.FechaApertura.HasValue)
+            {
+                campos.Add("Fecha de apertura (registro)");
+                errors++;
+            }
+
+            if (string.IsNullOrEmpty(body.NumeroAranda?.Trim()))
+            {
+                campos.Add("Número de caso");
+                errors++;
+            }
+
+            if (errors > 0)
+            {
+                logsError.Add(new JiraUploadIssueErrorLog
+                {
+                    NumeroAranda = body.NumeroAranda,
+                    ErrorMessage = $"Los siguientes campos no deben estar vacíos: [{string.Join(",", campos)}]",
+                    Operation = CrudOperations.CREATE
+                });
+            }
+
+
+            return errors;
+
+        }
 
         private async Task UpdateProcess(IssueUpdateRequest body, List<MinimalIssue> issuesInJiraByAranda, List<JiraUploadIssueErrorLog> logsError)
         {
@@ -100,7 +182,7 @@ namespace EIRA.Infrastructure.Repositories.Persistence
             {
                 logsError.Add(new JiraUploadIssueErrorLog
                 {
-                    ErrorMessage = $"El Número de Aranda {body.NumeroAranda} se encuentra en varias issues [{string.Join(",", issuesInJiraByAranda.Select(x => x.Key))}]",
+                    ErrorMessage = $"El Número de Aranda {body.NumeroAranda} se encuentra en varias issues",
                     NumeroAranda = body.NumeroAranda,
                     IssueKeyOrId = string.Join(",", issuesInJiraByAranda.Select(x => x.Key)),
                     Operation = CrudOperations.UPDATE,
@@ -111,7 +193,8 @@ namespace EIRA.Infrastructure.Repositories.Persistence
                 try
                 {
                     var issueToModify = issuesInJiraByAranda[0];
-                    //var response = await _issuesService.Update<object>(issueToModify.Key, new BaseFieldsPostBodyRequest<IssueUpdateRequest> { Fields = body }, "");
+                    var errorsCount = FieldUpdateValidation(body, logsError);
+                    var response = await _issuesService.Update<object>(issueToModify.Key, new BaseFieldsPostBodyRequest<IssueUpdateRequest> { Fields = body }, "");
                 }
                 catch (ExternalApiException ex)
                 {
@@ -134,6 +217,92 @@ namespace EIRA.Infrastructure.Repositories.Persistence
                         Operation = CrudOperations.UPDATE,
                     });
                 }
+            }
+        }
+
+        private int FieldUpdateValidation(IssueUpdateRequest body, List<JiraUploadIssueErrorLog> logsError)
+        {
+            var errors = 0;
+            var campos = new List<string>();
+            if (string.IsNullOrEmpty(body.Frente?.Value.Trim()))
+            {
+                campos.Add("Frente");
+                errors++;
+            }
+
+            if (string.IsNullOrEmpty(body.Compania?.Value.Trim()))
+            {
+                campos.Add("Compañía");
+                errors++;
+            }
+
+            if (string.IsNullOrEmpty(body.ResponsableCliente?.Value.Trim()))
+            {
+                campos.Add("Responsable Cliente");
+                errors++;
+            }
+
+            if (string.IsNullOrEmpty(body.DescripcionEstadoCliente?.Content?.FirstOrDefault()?.Content.FirstOrDefault()?.Text?.Trim()))
+            {
+                campos.Add("Descripción Estado Cliente");
+                errors++;
+            }
+
+            if (!body.FechaApertura.HasValue)
+            {
+                campos.Add("Fecha de apertura (registro)");
+                errors++;
+            }
+
+            if (string.IsNullOrEmpty(body.NumeroAranda?.Trim()))
+            {
+                campos.Add("Número de caso");
+                errors++;
+            }
+
+            if (errors > 0)
+            {
+                logsError.Add(new JiraUploadIssueErrorLog
+                {
+                    NumeroAranda = body.NumeroAranda,
+                    ErrorMessage = $"Los siguientes campos no deben estar vacíos {string.Join(",", campos)}",
+                    Operation = CrudOperations.UPDATE
+                });
+            }
+
+            return errors;
+        }
+
+        public async Task<bool> CommentOnIssue(string idOrKey, string comment)
+        {
+            try
+            {
+                var commentBody = new CommentOnIssueCreateRequest
+                {
+                    Body = new CommentBody
+                    {
+                        Content = new List<ContentBody> {
+
+                            new ContentBody
+                            {
+                                Content = new List<CommentText>
+                                {
+                                    new CommentText { Text = comment , Type="text"},
+                                },
+                                Type = "paragraph",
+                            }
+                        },
+                        Type = "doc",
+                        Version = 1,
+                    }
+                };
+                var response = await _issuesService.CommentOnIssue<object>(idOrKey, commentBody);
+                return true;
+            }
+            catch (Exception)
+            {
+
+                return false;
             }
         }
     }

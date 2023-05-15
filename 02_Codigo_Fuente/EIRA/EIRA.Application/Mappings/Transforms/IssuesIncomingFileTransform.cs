@@ -8,93 +8,169 @@ namespace EIRA.Application.Mappings.Transforms
 {
     public static class IssuesIncomingFileTransform
     {
-        public static IssueCreateRequest ToIssueCreateRequest(this IssuesIncomingFile source, List<KeyValueList> responsibleList, KeyValueList defaultResponsible)
+        public static IssueCreateRequest ToIssueCreateRequest(this IssuesIncomingFile source, List<KeyValueList> responsibleList, KeyValueList defaultResponsible, RequestTypeTarget requestTypeTarget)
         {
-            var caseType = GetCaseType(source.TipoCaso);
             var output = new IssueCreateRequest
             {
-                Assignee = new IdentifiableProp
-                {
-                    Id = JiraConfiguration.Asignado
-                },
-                Description = new Description
-                {
-                    Content = new List<DescriptionContent>
-                    {
-                        new DescriptionContent
-                        {
-                            Type = "paragraph",
-                            Content = new List<ContentContent> {
-                                new ContentContent
-                                {
-                                    Text = source.Summary,
-                                    Type = "text",
-                                }
-                            }
-                        }
-                    },
-                    Type = "doc",
-                    Version = 1
-                },
                 Project = new IdentifiableProp
                 {
                     Id = JiraConfiguration.ProyectoId
                 },
-                Summary = source.Summary,
+                Summary = source.Resumen.GetStringOrFallback("Sin Resumen"),
                 Issuetype = new IdentifiableProp
                 {
-                    Id = GetIssueTypeId(source.TipoCaso)
+                    Id = GetIssueTypeId(requestTypeTarget)
                 },
-                Priority = new NameableProp
+                Assignee = new IdentifiableProp
                 {
-                    Name = "Medium"
-                },
-                Frente = new ValuableProp
-                {
-                    Value = source.Servicio
+                    Id = JiraConfiguration.Asignado
                 },
                 Compania = new ValuableProp
                 {
-                    Value = "CEO"
+                    Value = source.Compania == "SURTIGAS" ? "STG" : source.Compania
                 },
-                NumeroAranda = source.NumeroCaso,
-                FechaAsignacionAranda = DateTime.UtcNow,
                 ResponsableCliente = new ValuableProp
                 {
-                    Value = GetResponsable(source.GestionadoPor, responsibleList, defaultResponsible),
+                    Value = GetResponsable(source.ResponsableCliente, responsibleList, defaultResponsible),
+                },
+                FechaAsignacionAranda = source.FechaAsignacion.ToUniversalTime(),
+                NumeroAranda = source.NumeroCaso,
+
+                DescripcionEstadoCliente = new Customfield1010
+                {
+                    Type = "doc",
+                    Version = 1,
+                    Content = new List<Customfield10103_Content>
+                    {
+                        new Customfield10103_Content
+                        {
+                            Type = "paragraph",
+                            Content = new List<ContentContent>
+                            {
+                                new ContentContent
+                                {
+                                    Type = "text",
+                                    Text = GetDescripcionEstadoCliente(source.EstadoCliente, source.Razon)
+                                }
+                            }
+                        }
+                    }
                 },
 
-                FechaRegistroAranda = source.FechaRegistro.ToUniversalTime(),
-                EstadoAranda = $"{source.Estado} - {source.Razon}",
-                Grupo = source.Grupo?.Split("-")?.LastOrDefault()?.Trim() ?? string.Empty,
-                SistemaCargue = "EIRA",
+                Gravedad = new IdentifiableProp
+                {
+                    Id = GetIdGravedad(source.Urgencia)
+                }
             };
 
-            switch (caseType)
+            if (source.FechaRegistro.HasValue)
             {
-                case CaseTypeIssueEnum.Incident:
-                case CaseTypeIssueEnum.Development:
-                    output.Gravedad = new IdentifiableProp
-                    {
-                        Id = GetIdGravedad(source.Urgencia),
-                    };
-                    break;
+                output.FechaApertura = source.FechaRegistro.Value.ToUniversalTime();
             }
+
+            if (!string.IsNullOrEmpty(source.Complejidad) && !string.IsNullOrEmpty(source.Complejidad.Trim()))
+            {
+                output.Complejidad = new ValuableProp
+                {
+                    Value = source.Complejidad.Trim(),
+                };
+            }
+
+
+            if (source.Prioridad.HasValue)
+            {
+                output.Prioridad = source.Prioridad.Value;
+            }
+
+
+            if (!string.IsNullOrEmpty(source.Servicio) && !string.IsNullOrEmpty(source.Servicio.Trim()))
+            {
+                output.Frente = new ValuableProp
+                {
+                    Value = GetFrenteByServicio(source.Servicio) == "CONTABILIDAD" ? "BSS" : GetFrenteByServicio(source.Servicio)
+                };
+            }
+
+            if (!string.IsNullOrEmpty(source.HistoriaUsuario) && !string.IsNullOrEmpty(source.HistoriaUsuario.Trim()))
+            {
+                output.HistoriaUsuario = new Customfield1010
+                {
+                    Type = "doc",
+                    Version = 1,
+                    Content = new List<Customfield10103_Content>
+                    {
+                        new Customfield10103_Content
+                        {
+                            Type="paragraph",
+                            Content= new List<ContentContent>
+                            {
+                                new ContentContent
+                                {
+                                    Type="text",
+                                    Text=source.HistoriaUsuario
+                                }
+                            }
+                        }
+                    }
+                };
+            }
+
+
+            // FECHAS
+            if (source.FechaEntregaAnalisisN1.HasValue && source.FechaEntregaAnalisisN1.Value.Year >= 1999)
+            {
+                output.FechaEntregaAnalisisN1 = source.FechaEntregaAnalisisN1;
+            }
+
+            if (source.FechaEstimadaPropuestaSolucion.HasValue && source.FechaEstimadaPropuestaSolucion.Value.Year >= 1999)
+            {
+                output.FechaEstimadaPropuestaSolucion = source.FechaEstimadaPropuestaSolucion;
+            }
+
+            if (source.FechaEntregaPropuestaSolucion.HasValue && source.FechaEntregaPropuestaSolucion.Value.Year >= 1999)
+            {
+                output.FechaEntregaPropuestaSolucion = source.FechaEntregaPropuestaSolucion;
+            }
+
+            if (source.FechaEstimadaConstruccion.HasValue && source.FechaEstimadaConstruccion.Value.Year >= 1999)
+            {
+                output.FechaEstimadaConstruccion = source.FechaEstimadaConstruccion;
+            }
+
+            if (source.FechaEntregaConstruccion.HasValue && source.FechaEntregaConstruccion.Value.Year >= 1999)
+            {
+                output.FechaEntregaConstruccion = source.FechaEntregaConstruccion;
+            }
+
+
+            // TIEMPOS
+            if (source.TiempoEstimadoPropuestaSolucion.HasValue)
+            {
+                output.TiempoEstimadoPropuestaSolucion = source.TiempoEstimadoPropuestaSolucion.Value;
+            }
+
+            if (source.TiempoEstimadoConstruccion.HasValue)
+            {
+                output.TiempoEstimadoConstruccion = source.TiempoEstimadoConstruccion.Value;
+            }
+
+            if (source.TiempoEstimadoSoportePruebas.HasValue)
+            {
+                output.TiempoEstimadoSoportePruebas = source.TiempoEstimadoSoportePruebas.Value;
+            }
+
 
             return output;
         }
 
-        private static CaseTypeIssueEnum GetCaseType(string tipoCaso)
+        private static CaseTypeIssueEnum GetCaseType(RequestTypeTarget requestTypeTarget)
         {
-            if (string.IsNullOrEmpty(tipoCaso) || tipoCaso.Trim() == string.Empty)
-                return CaseTypeIssueEnum.None;
-
-            return tipoCaso.ToUpper().Contains("REQUERIMIENTO") ? CaseTypeIssueEnum.Development : CaseTypeIssueEnum.Incident;
+            return requestTypeTarget == RequestTypeTarget.Desarollo ? CaseTypeIssueEnum.Development : CaseTypeIssueEnum.Incident;
         }
 
-        private static string GetIssueTypeId(string tipoCaso)
+        private static string GetIssueTypeId(RequestTypeTarget requestTypeTarget)
         {
-            var caseType = GetCaseType(tipoCaso);
+            var caseType = GetCaseType(requestTypeTarget);
 
             return caseType switch
             {
@@ -125,6 +201,36 @@ namespace EIRA.Application.Mappings.Transforms
                 return responsibleList.FirstOrDefault(x => x.Value.ToUpper() == (gestionadoPor).ToUpper()).Value;
 
             return defaultResponsible.Value;
+        }
+
+        private static string GetStringOrFallback(this string cadena, string fallback = "Sin contenido")
+        {
+            return string.IsNullOrEmpty(cadena) || string.IsNullOrEmpty(cadena.Trim()) ? fallback : cadena.Trim();
+        }
+
+        private static string GetFrenteByServicio(string servicio)
+        {
+            var servicioArr = servicio?.Split(" ");
+            if (servicioArr.Length == 1)
+                return servicio.Trim();
+
+            return servicioArr[1];
+        }
+
+        private static string GetDescripcionEstadoCliente(string estado, string razon)
+        {
+            if (string.IsNullOrEmpty(estado) && string.IsNullOrEmpty(razon))
+            {
+                return string.Empty;
+            }
+
+            if (string.IsNullOrEmpty(estado))
+                return razon;
+
+            if (string.IsNullOrEmpty(razon))
+                return estado;
+
+            return $"{estado} - {razon}";
         }
     }
 }

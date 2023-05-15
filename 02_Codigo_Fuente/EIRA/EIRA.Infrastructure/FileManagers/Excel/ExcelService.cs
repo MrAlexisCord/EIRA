@@ -1,4 +1,5 @@
 ﻿using ClosedXML.Excel;
+using EIRA.Application.Extensions;
 using EIRA.Application.Services.Files;
 
 namespace EIRA.Infrastructure.FileManagers.Excel
@@ -41,7 +42,9 @@ namespace EIRA.Infrastructure.FileManagers.Excel
                             {
                                 var cellValue = row.Cell(columnIndex).GetString();
 
-                                if (cellValue != null)
+                                var rowCelll = row.Cell(columnIndex);
+
+                                if (cellValue != null && cellValue.Trim() != string.Empty)
                                 {
                                     var convertionType = Nullable.GetUnderlyingType(prop.PropertyType);
                                     prop.SetValue(obj, Convert.ChangeType(cellValue, convertionType is not null ? convertionType : prop.PropertyType));
@@ -50,7 +53,6 @@ namespace EIRA.Infrastructure.FileManagers.Excel
                         }
                         catch (Exception ex)
                         {
-
                             //throw;
                         }
                     }
@@ -60,6 +62,64 @@ namespace EIRA.Infrastructure.FileManagers.Excel
             }
 
             return list;
+        }
+
+        public string WriteExcel<T>(List<T> items, string[] propertyNames, string fileName, string sheetName = null) where T : class
+        {
+            if (items is null || !items.Any())
+                return string.Empty;
+
+            sheetName ??= "Hoja 1";
+            try
+            {
+                var headers = propertyNames.Select(x => PropertyExtension.GetReportHeader<T>(x));
+                using (var workbook = new XLWorkbook())
+                {
+                    var worksheet = workbook.Worksheets.Add(sheetName);
+
+                    foreach (var header in headers.Select((head, index) => new { Name = head, ColumnIndex = index + 1 }))
+                    {
+                        worksheet.Cell(row: 1, column: header.ColumnIndex).Value = header.Name;
+                        worksheet.Range(firstCellRow: 1, firstCellColumn: 1, lastCellRow: 1, lastCellColumn: headers.Count()).SetAutoFilter();
+                    }
+
+                    int rowIndex = 2;
+                    foreach (var item in items)
+                    {
+                        foreach (var property in propertyNames.Select((prop, index) => new { Name = prop, ColumnIndex = index + 1 }))
+                        {
+                            AddValueToCell(item, worksheet, property.Name, rowIndex, property.ColumnIndex);
+                        }
+                        rowIndex++;
+                    }
+                    worksheet.Columns().AdjustToContents();
+
+                    var diretorio = Path.GetTempPath();
+                    string path = $@"{diretorio}\{fileName}";
+
+                    workbook.SaveAs(path);
+
+                    return path;
+                }
+            }
+            catch (Exception)
+            {
+                return string.Empty;
+            }
+        }
+
+        private void AddValueToCell<T>(T item, IXLWorksheet worksheet, string propertyName, int rowIndex, int columnIndex) where T : class
+        {
+            var prop = typeof(T).GetProperty(propertyName);
+            var propertyValue = prop.GetValue(item, null);
+            if (propertyValue != null)
+            {
+                var cellValue = XLCellValue.FromObject(propertyValue);
+                if (!(cellValue.IsDateTime && cellValue.GetDateTime().Year < 1900))
+                {
+                    worksheet.Cell(row: rowIndex, column: columnIndex).SetValue(cellValue);
+                }
+            }
         }
     }
 }

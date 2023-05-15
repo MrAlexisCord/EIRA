@@ -8,5 +8,6 @@ namespace EIRA.Application.Services.API.JiraAPIV3
         Task<T> Update<T>(string issueIdOrKey, BaseFieldsPostBodyRequest<IssueUpdateRequest> issueBody, string token);
         Task<T> GetIssueByIdOrKey<T>(string idOrKey, string token);
         Task<T> IssueByArandaNumber<T>(string arandaNumber);
+        Task<T> CommentOnIssue<T>(string idOrKey, CommentOnIssueCreateRequest commentBody);
     }
 }

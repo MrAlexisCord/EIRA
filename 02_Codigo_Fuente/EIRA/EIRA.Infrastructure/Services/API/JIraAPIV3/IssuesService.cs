@@ -48,9 +48,19 @@ namespace EIRA.Infrastructure.Services.API.JIraAPIV3
             return await this.SendAsync<T>(new ApiRequest
             {
                 ApiType= ApiType.GET,
-                Url = $"{ExternalEndpoint.JiraAPIBaseV3}/search?fields=maxResults&maxResults=50&jql=project%3D{JiraConfiguration.ProyectoId}%20AND%20\"Numero%20Aranda%5BShort%20text%5D\"~{arandaNumber}",
+                Url = $"{ExternalEndpoint.JiraAPIBaseV3}/search?fields=maxResults&maxResults=50&jql=project%3D{JiraConfiguration.ProyectoId}%20AND%20\"Incidencia%5BShort%20text%5D\"~{arandaNumber}",
             });
 
+        }
+
+        public async Task<T> CommentOnIssue<T>(string idOrKey, CommentOnIssueCreateRequest commentBody)
+        {
+            return await this.SendAsync<T>(new ApiRequest
+            {
+                ApiType = ApiType.POST,
+                Data = commentBody,
+                Url = $"{ExternalEndpoint.JiraAPIBaseV3}/issue/{idOrKey}/comment",
+            });
         }
     }
 }
