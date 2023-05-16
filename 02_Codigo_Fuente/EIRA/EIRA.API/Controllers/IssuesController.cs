@@ -77,11 +77,21 @@ namespace EIRA.API.Controllers
             var propNames = new string[]
             {
                 //nameof(IssueConComentariosReport.IssueKeyOrId),
-                nameof(IssueConComentariosReport.NumeroAranda),
-                nameof(IssueConComentariosReport.Entero),
-                nameof(IssueConComentariosReport.EnteroNullable),
-                nameof(IssueConComentariosReport.Fecha),
-                nameof(IssueConComentariosReport.FechaNullable),
+                nameof(IssueConComentariosReport.Project),
+                nameof(IssueConComentariosReport.NumeroCaso),
+                nameof(IssueConComentariosReport.ResponsableCliente),
+                nameof(IssueConComentariosReport.Tarea),
+                nameof(IssueConComentariosReport.Complejidad),
+                nameof(IssueConComentariosReport.Prioridad),
+                nameof(IssueConComentariosReport.Estado),
+                nameof(IssueConComentariosReport.DescripcionCorta),
+                nameof(IssueConComentariosReport.Compania),
+                nameof(IssueConComentariosReport.Desarrollador),
+                nameof(IssueConComentariosReport.Observaciones),
+                nameof(IssueConComentariosReport.FechaEntregaAnalisisN1),
+                nameof(IssueConComentariosReport.FechaEntregaPropuestaSolucion),
+                nameof(IssueConComentariosReport.FechaEntregaConstruccion),
+                nameof(IssueConComentariosReport.FechaCierre),
             };
             var filePath = _excelService.WriteExcel(response, propNames, fileName);
             return DownloadExcelFile(filePath, fileName);

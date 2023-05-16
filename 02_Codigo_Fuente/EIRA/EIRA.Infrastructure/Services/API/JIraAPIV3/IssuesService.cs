@@ -47,7 +47,7 @@ namespace EIRA.Infrastructure.Services.API.JIraAPIV3
         {
             return await this.SendAsync<T>(new ApiRequest
             {
-                ApiType= ApiType.GET,
+                ApiType = ApiType.GET,
                 Url = $"{ExternalEndpoint.JiraAPIBaseV3}/search?fields=maxResults&maxResults=50&jql=project%3D{JiraConfiguration.ProyectoId}%20AND%20\"Incidencia%5BShort%20text%5D\"~{arandaNumber}",
             });
 
@@ -61,6 +61,26 @@ namespace EIRA.Infrastructure.Services.API.JIraAPIV3
                 Data = commentBody,
                 Url = $"{ExternalEndpoint.JiraAPIBaseV3}/issue/{idOrKey}/comment",
             });
+        }
+
+        public async Task<T> GetCommentsByIssueIdOrKey<T>(string idOrKey)
+        {
+            return await this.SendAsync<T>(new ApiRequest
+            {
+                ApiType = ApiType.GET,
+                Url = $"{ExternalEndpoint.JiraAPIBaseV3}/issue/{idOrKey}/comment",
+            });
+        }
+
+        public async Task<T> GetIssuesByJQL<T>(string jqlStatement)
+        {
+
+            return await this.SendAsync<T>(new ApiRequest
+            {
+                ApiType = ApiType.GET,
+                Url = $"{ExternalEndpoint.JiraAPIBaseV3}/search?jql={jqlStatement}",
+            });
+
         }
     }
 }

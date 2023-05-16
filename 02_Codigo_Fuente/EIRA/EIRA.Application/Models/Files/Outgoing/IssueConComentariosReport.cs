@@ -4,17 +4,37 @@ namespace EIRA.Application.Models.Files.Outgoing
 {
     public class IssueConComentariosReport
     {
-        [ReportHeader("Issue Id")]
-        public string IssueKeyOrId { get; set; }
-        [ReportHeader("Número Aranda")]
-        public string NumeroAranda { get; set; }
-        [ReportHeader("Entero")]
-        public int Entero { get; set; }
-        [ReportHeader("Entero Nullable")]
-        public int? EnteroNullable { get; set; }
-        [ReportHeader("Fecha")]
-        public DateTime Fecha { get; set; }
-        [ReportHeader("Fecha Nullable")]
-        public DateTime? FechaNullable { get; set; }
+        [ReportHeader("Proyecto")]
+        public string Project { get; set; }
+        [ReportHeader("Número de Casi")]
+        public string NumeroCaso { get; set; }
+        [ReportHeader("N1")]
+        public string ResponsableCliente { get; set; } //N1
+        [ReportHeader("Tarea")]
+        public string Tarea { get; set; } = "Obtener Tarea";
+        [ReportHeader("Complejidad")]
+        public string Complejidad { get; set; }
+        [ReportHeader("Estad")]
+        public string Estado { get; set; }
+        [ReportHeader("Prioridad")]
+        public decimal? Prioridad { get; set; }
+        [ReportHeader("Descripción Corta")]
+        public string DescripcionCorta { get; set; } = "Descripción Corta Obtener";// Descripcion
+        [ReportHeader("Compañia")]
+        public string Compania { get; set; }
+        [ReportHeader("Desarrollador")]
+        public string Desarrollador { get; set; }
+        [ReportHeader("Fecha Estimada")]
+        public DateTime? FechaEstimada { get; set; } // Cuál fecha estimada es?
+        [ReportHeader("Observaciones")]
+        public string Observaciones { get; set; } // Comentarios
+        [ReportHeader("Fecha de Entrega Análisis N1")]
+        public DateTime? FechaEntregaAnalisisN1 { get; set; }
+        [ReportHeader("Fecha de Entrega Propuesta Solución")]
+        public DateTime? FechaEntregaPropuestaSolucion { get; set; }
+        [ReportHeader("Fecha Entrega Construcción")]
+        public DateTime? FechaEntregaConstruccion { get; set; }
+        [ReportHeader("Fecha Cierre")]
+        public DateTime? FechaCierre { get; set; }
     }
 }

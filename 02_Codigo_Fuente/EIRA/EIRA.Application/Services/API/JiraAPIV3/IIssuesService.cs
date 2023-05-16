@@ -9,5 +9,7 @@ namespace EIRA.Application.Services.API.JiraAPIV3
         Task<T> GetIssueByIdOrKey<T>(string idOrKey, string token);
         Task<T> IssueByArandaNumber<T>(string arandaNumber);
         Task<T> CommentOnIssue<T>(string idOrKey, CommentOnIssueCreateRequest commentBody);
+        Task<T> GetCommentsByIssueIdOrKey<T>(string idOrKey);
+        Task<T> GetIssuesByJQL<T>(string jqlStatement);
     }
 }

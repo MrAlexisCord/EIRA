@@ -5,10 +5,13 @@ using EIRA.Application.Exceptions;
 using EIRA.Application.Mappings.Transforms;
 using EIRA.Application.Models.External.JiraV3;
 using EIRA.Application.Models.Files.Incoming;
+using EIRA.Application.Models.Files.Outgoing;
 using EIRA.Application.Models.LogModels;
 using EIRA.Application.Services.API.JiraAPIV3;
 using EIRA.Application.Statics.Enumerations;
 using EIRA.Application.Statics.Operations;
+using EIRA.Application.Validators;
+using System.Web;
 
 namespace EIRA.Infrastructure.Repositories.Persistence
 {
@@ -44,7 +47,7 @@ namespace EIRA.Infrastructure.Repositories.Persistence
                     if (issuesInJiraByAranda is not null && issuesInJiraByAranda.Any())
                     {
                         var updateBody = _mapper.Map<IssueUpdateRequest>(body);
-                        await UpdateProcess(updateBody, issuesInJiraByAranda, logsError);
+                        await UpdateProcess(updateBody, issuesInJiraByAranda, logsError, comentarios);
                     }
                     else
                     {
@@ -69,33 +72,9 @@ namespace EIRA.Infrastructure.Repositories.Persistence
         {
             try
             {
-                FieldCreateValidation(body, logsError);
+                body.FieldCreateValidation(logsError);
                 var response = await _issuesService.Create<IssueCreatedResponse>(new BaseFieldsPostBodyRequest<IssueCreateRequest> { Fields = body }, "");
-                if (!string.IsNullOrEmpty(comentarios) && !string.IsNullOrEmpty(comentarios.Trim()))
-                {
-                    var comentariosList = comentarios.Split("\n").Select(comentario =>
-                    {
-                        var dateString = comentario?.Split(":")?[0];
-                        var fechaComentario = DateTime.UtcNow;
-                        if (dateString is not null)
-                        {
-                            var resultDate = DateTime.TryParse(dateString, out DateTime fechaComentarioNuevo);
-
-                            if (resultDate)
-                            {
-                                fechaComentario = fechaComentarioNuevo;
-                            }
-                        }
-
-                        return new { Fecha = fechaComentario, Comentario = comentario };
-                    }).OrderBy(x => x.Fecha).Select(x => x.Comentario);
-
-
-                    foreach (var comentario in comentariosList)
-                    {
-                        await CommentOnIssue(response.Key, comentario);
-                    }
-                }
+                await SetComments(response.Key, comentarios);
             }
             catch (ExternalApiException ex)
             {
@@ -120,62 +99,7 @@ namespace EIRA.Infrastructure.Repositories.Persistence
             }
         }
 
-        private int FieldCreateValidation(IssueCreateRequest body, List<JiraUploadIssueErrorLog> logsError)
-        {
-            var errors = 0;
-            var campos = new List<string>();
-            if (string.IsNullOrEmpty(body.Frente?.Value.Trim()))
-            {
-                campos.Add("Frente");
-                errors++;
-            }
-
-            if (string.IsNullOrEmpty(body.Compania?.Value.Trim()))
-            {
-                campos.Add("Compañia");
-                errors++;
-            }
-
-            if (string.IsNullOrEmpty(body.ResponsableCliente?.Value.Trim()) || body.ResponsableCliente?.Value == "Responsable no asignado")
-            {
-                campos.Add("Responsable Cliente");
-                errors++;
-            }
-
-            if (string.IsNullOrEmpty(body.DescripcionEstadoCliente?.Content?.FirstOrDefault()?.Content.FirstOrDefault()?.Text?.Trim()))
-            {
-                campos.Add("Descripción Estado Cliente");
-                errors++;
-            }
-
-            if (!body.FechaApertura.HasValue)
-            {
-                campos.Add("Fecha de apertura (registro)");
-                errors++;
-            }
-
-            if (string.IsNullOrEmpty(body.NumeroAranda?.Trim()))
-            {
-                campos.Add("Número de caso");
-                errors++;
-            }
-
-            if (errors > 0)
-            {
-                logsError.Add(new JiraUploadIssueErrorLog
-                {
-                    NumeroAranda = body.NumeroAranda,
-                    ErrorMessage = $"Los siguientes campos no deben estar vacíos: [{string.Join(",", campos)}]",
-                    Operation = CrudOperations.CREATE
-                });
-            }
-
-
-            return errors;
-
-        }
-
-        private async Task UpdateProcess(IssueUpdateRequest body, List<MinimalIssue> issuesInJiraByAranda, List<JiraUploadIssueErrorLog> logsError)
+        private async Task UpdateProcess(IssueUpdateRequest body, List<MinimalIssue> issuesInJiraByAranda, List<JiraUploadIssueErrorLog> logsError, string comentarios = null)
         {
 
             if (issuesInJiraByAranda.Count > 1)
@@ -193,8 +117,9 @@ namespace EIRA.Infrastructure.Repositories.Persistence
                 try
                 {
                     var issueToModify = issuesInJiraByAranda[0];
-                    var errorsCount = FieldUpdateValidation(body, logsError);
+                    var errorsCount = body.FieldUpdateValidation(logsError);
                     var response = await _issuesService.Update<object>(issueToModify.Key, new BaseFieldsPostBodyRequest<IssueUpdateRequest> { Fields = body }, "");
+                    await SetComments(issueToModify.Key, comentarios);
                 }
                 catch (ExternalApiException ex)
                 {
@@ -218,59 +143,6 @@ namespace EIRA.Infrastructure.Repositories.Persistence
                     });
                 }
             }
-        }
-
-        private int FieldUpdateValidation(IssueUpdateRequest body, List<JiraUploadIssueErrorLog> logsError)
-        {
-            var errors = 0;
-            var campos = new List<string>();
-            if (string.IsNullOrEmpty(body.Frente?.Value.Trim()))
-            {
-                campos.Add("Frente");
-                errors++;
-            }
-
-            if (string.IsNullOrEmpty(body.Compania?.Value.Trim()))
-            {
-                campos.Add("Compañía");
-                errors++;
-            }
-
-            if (string.IsNullOrEmpty(body.ResponsableCliente?.Value.Trim()))
-            {
-                campos.Add("Responsable Cliente");
-                errors++;
-            }
-
-            if (string.IsNullOrEmpty(body.DescripcionEstadoCliente?.Content?.FirstOrDefault()?.Content.FirstOrDefault()?.Text?.Trim()))
-            {
-                campos.Add("Descripción Estado Cliente");
-                errors++;
-            }
-
-            if (!body.FechaApertura.HasValue)
-            {
-                campos.Add("Fecha de apertura (registro)");
-                errors++;
-            }
-
-            if (string.IsNullOrEmpty(body.NumeroAranda?.Trim()))
-            {
-                campos.Add("Número de caso");
-                errors++;
-            }
-
-            if (errors > 0)
-            {
-                logsError.Add(new JiraUploadIssueErrorLog
-                {
-                    NumeroAranda = body.NumeroAranda,
-                    ErrorMessage = $"Los siguientes campos no deben estar vacíos {string.Join(",", campos)}",
-                    Operation = CrudOperations.UPDATE
-                });
-            }
-
-            return errors;
         }
 
         public async Task<bool> CommentOnIssue(string idOrKey, string comment)
@@ -304,6 +176,88 @@ namespace EIRA.Infrastructure.Repositories.Persistence
 
                 return false;
             }
+        }
+
+        public async Task SetComments(string issueKey, string comentarios)
+        {
+            if (!string.IsNullOrEmpty(comentarios) && !string.IsNullOrEmpty(comentarios.Trim()))
+            {
+                var comentariosList = comentarios.Split("\n").Select(comentario =>
+                {
+                    var dateString = comentario?.Split(":")?[0];
+                    var fechaComentario = DateTime.UtcNow;
+                    if (dateString is not null)
+                    {
+                        var resultDate = DateTime.TryParse(dateString, out DateTime fechaComentarioNuevo);
+
+                        if (resultDate)
+                        {
+                            fechaComentario = fechaComentarioNuevo;
+                        }
+                    }
+
+                    return new { Fecha = fechaComentario, Comentario = comentario };
+                }).OrderBy(x => x.Fecha).Select(x => x.Comentario);
+
+
+                foreach (var comentario in comentariosList)
+                {
+                    await CommentOnIssue(issueKey, comentario);
+                }
+            }
+        }
+
+        public async Task<List<IssueConComentariosReport>> GetIssuesByFechaApertura(DateTime startDate, DateTime endDate)
+        {
+            var response = new List<Issue>();
+            //string jqlStatement = "project%3DSE+AND+%22Fecha+Apertura%5BDate%5D%22+%3E+%222022-02-22%22+AND+%22Fecha+Apertura%5BDate%5D%22+%3E+%222023-01-10%22"
+            var pageNumber = 0;
+            var maxResults = 100;
+            var keepQueryingIssues = true;
+            while (keepQueryingIssues)
+            {
+                var starAt = pageNumber * maxResults;
+                var paginationString = $"&startAt={starAt}&maxResults={maxResults}";
+                string jqlStatement = $"project=SE AND \"Fecha Apertura[Date]\" >= \"{startDate:yyyy-MM-dd}\" AND \"Fecha Apertura[Date]\" <= \"{endDate:yyyy-MM-dd}\"";
+                string encodedJqlStatement = $"{HttpUtility.UrlEncode(jqlStatement)}{paginationString}";
+                var responseQuery = await _issuesService.GetIssuesByJQL<IssueWrapperResponse>(encodedJqlStatement);
+                if (responseQuery != null && responseQuery.Issues != null && responseQuery.Issues.Any())
+                {
+                    response.AddRange(responseQuery.Issues);
+                    pageNumber++;
+                }
+                else
+                {
+                    keepQueryingIssues = false;
+                }
+            }
+
+            //GET COMMENTS
+
+            return response.Any() ? await FromListIssueToListIssueConComentariosReport(response) : new List<IssueConComentariosReport>();
+        }
+
+        private async Task<List<IssueConComentariosReport>> FromListIssueToListIssueConComentariosReport(List<Issue> issues)
+        {
+            var response = new List<IssueConComentariosReport>();
+
+            if (issues == null || !issues.Any()) return response;
+            foreach (var issue in issues)
+            {
+                var issueCommentsFormatted = await GetIssueComments(issue.Key);
+                var issueWithComments = IssueWrapperResponseTransform.FromIssueToIssueConComentariosReport(issue, issueCommentsFormatted);
+                response.Add(issueWithComments);
+            }
+            return response;
+
+        }
+
+        private async Task<IEnumerable<string>> GetIssueComments(string idOrKey)
+        {
+            var issueComments = await _issuesService.GetCommentsByIssueIdOrKey<IssueCommentResponse>(idOrKey);
+            var issueCommentsFormatted = issueComments?.Comments?.Select(x => x?.Body?.Content?.SelectMany(y => y?.Content)?.Select(z => z?.Text))?.SelectMany(t => t);
+            issueCommentsFormatted = issueCommentsFormatted.Where(x => !string.IsNullOrEmpty(x));
+            return issueCommentsFormatted;
         }
     }
 }
