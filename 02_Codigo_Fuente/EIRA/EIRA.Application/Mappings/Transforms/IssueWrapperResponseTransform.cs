@@ -14,18 +14,21 @@ namespace EIRA.Application.Mappings.Transforms
                 Compania = issue?.Fields?.Compania?.Value ?? string.Empty,
                 Complejidad = issue?.Fields?.Complejidad?.Value ?? string.Empty,
                 Desarrollador = issue?.Fields?.Desarrollador?.DisplayName ?? string.Empty,
-                DescripcionCorta = issue?.Fields?.DescripcionCorta ?? string.Empty,
+                DescripcionCorta = (issue?.Fields?.HistoriaUsuario?.Content?.FirstOrDefault()?.Content?.FirstOrDefault()?.Text ?? string.Empty).Replace("\n", Environment.NewLine),
                 FechaCierre = issue?.Fields?.FechaCierre,
                 FechaEntregaAnalisisN1 = issue?.Fields?.FechaEntregaAnalisisN1,
                 FechaEntregaConstruccion = issue?.Fields?.FechaEntregaConstruccion,
                 FechaEntregaPropuestaSolucion = issue?.Fields?.FechaEntregaPropuestaSolucion,
-                FechaEstimada = issue?.Fields?.FechaEstimada,
+                //FechaEstimada = issue?.Fields?.FechaEstimada,
                 NumeroCaso = issue?.Fields?.NumeroCaso ?? string.Empty,
                 Observaciones = string.Join(Environment.NewLine, issueCommentsFormatted),
                 Prioridad = issue?.Fields?.Prioridad,
-                Project = issue?.Fields?.Project?.Name ?? string.Empty,
+                //Project = issue?.Fields?.Project?.Name ?? string.Empty,
                 ResponsableCliente = issue?.Fields?.ResponsableCliente?.Value ?? string.Empty,
-                Tarea = issue?.Fields?.Tarea ?? string.Empty,
+                //Tarea = issue?.Fields?.Tarea ?? string.Empty,
+                Estado = issue?.Fields?.Status?.Name ?? string.Empty,
+
+                
             };
         }
     }

@@ -80,6 +80,7 @@ namespace EIRA.Infrastructure.FileManagers.Excel
                     foreach (var header in headers.Select((head, index) => new { Name = head, ColumnIndex = index + 1 }))
                     {
                         worksheet.Cell(row: 1, column: header.ColumnIndex).Value = header.Name;
+                        worksheet.Cell(row: 1, column: header.ColumnIndex).Style.Fill.BackgroundColor = XLColor.FromArgb(0xBFBFBF);
                         worksheet.Range(firstCellRow: 1, firstCellColumn: 1, lastCellRow: 1, lastCellColumn: headers.Count()).SetAutoFilter();
                     }
 

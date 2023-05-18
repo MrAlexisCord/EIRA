@@ -16,13 +16,11 @@ namespace EIRA.API.Controllers
     public class IssuesController : BaseController
     {
         private readonly IAuthCacheRepository _cacheRepository;
-        private readonly ICSVService _csvService;
         private readonly IExcelService _excelService;
 
-        public IssuesController(IAuthCacheRepository cacheRepository, ICSVService csvService, IExcelService excelService)
+        public IssuesController(IAuthCacheRepository cacheRepository, IExcelService excelService)
         {
             _cacheRepository = cacheRepository;
-            _csvService = csvService;
             _excelService = excelService;
         }
 
@@ -63,8 +61,8 @@ namespace EIRA.API.Controllers
             return Ok();
         }
 
-        [HttpGet("GetReport")]
-        public async Task<IActionResult> GetReport()
+        [HttpPost("GetReporteSeguimiento")]
+        public async Task<IActionResult> GetReporteSeguimiento(GetReporteComentariosQuery request)
         {
             await _cacheRepository.GetUserInfoInCache(new AuthLoginRequestBody
             {
@@ -72,15 +70,15 @@ namespace EIRA.API.Controllers
                 JiraApiKey = "ATATT3xFfGF0A48NnkRMeLReao06WQBy93psM6hYoHvlaQomCCGZQKg9EQnw9N2aYVAm_B7OiIlZjPnhTn8IQuOsL9G7-lniBeCnGozMcQn4VinAF_rJmAz0v_tgjPgIIZba7EvH8Xo9zmSSHBaDQ3_KJqnTTmIa4fmGgTRcmZKnAxQ9r3vckEk=20FB03B8"
             });
 
-            var response = await Mediator.Send(new GetReporteComentariosQuery());
+            var response = await Mediator.Send(request);
             var fileName = $"reporte-issues-{DateTime.Now.ExportableDateTimeFormat()}.xlsx";
             var propNames = new string[]
             {
                 //nameof(IssueConComentariosReport.IssueKeyOrId),
-                nameof(IssueConComentariosReport.Project),
+                //nameof(IssueConComentariosReport.Project),
                 nameof(IssueConComentariosReport.NumeroCaso),
                 nameof(IssueConComentariosReport.ResponsableCliente),
-                nameof(IssueConComentariosReport.Tarea),
+                //nameof(IssueConComentariosReport.Tarea),
                 nameof(IssueConComentariosReport.Complejidad),
                 nameof(IssueConComentariosReport.Prioridad),
                 nameof(IssueConComentariosReport.Estado),

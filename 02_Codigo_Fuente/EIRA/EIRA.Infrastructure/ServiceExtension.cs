@@ -39,11 +39,15 @@ namespace EIRA.Infrastructure
             services.AddHttpClient<IIssuesService, IssuesService>();
             services.AddHttpClient<IAuthService, AuthService>();
             services.AddHttpClient<IResponsibleService, ResponsibleService>();
+            services.AddHttpClient<IStatusesService, StatusesService>();
+            services.AddHttpClient<IProjectsService, ProjectsService>();
 
             // Services and repositories
             services.AddScoped<IIssuesService, IssuesService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IResponsibleService, ResponsibleService>();
+            services.AddScoped<IStatusesService, StatusesService>();
+            services.AddScoped<IProjectsService, ProjectsService>();
 
             services.AddScoped<IAuthJiraRepository, AuthJiraRepository>();
             services.AddScoped<IAuthCacheRepository, AuthCacheRepository>();
@@ -51,6 +55,8 @@ namespace EIRA.Infrastructure
 
             services.AddScoped<IIssuesJiraRepository, IssuesJiraRepository>();
             services.AddScoped<IResponsibleJiraRepository, ResponsibleJiraRepository>();
+            services.AddScoped<IStatusesRepository, StatusesRepository>();
+            services.AddScoped<IProjectsRepository, ProjectsRepository>();
         }
     }
 }

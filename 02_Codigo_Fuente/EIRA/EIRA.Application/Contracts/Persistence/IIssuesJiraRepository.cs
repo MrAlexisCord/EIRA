@@ -11,6 +11,6 @@ namespace EIRA.Application.Contracts.Persistence
         Task<List<JiraUploadIssueErrorLog>> PostIssuesAsync(List<IssuesIncomingFile> source, RequestTypeTarget requestTypeTarget);
         Task<List<MinimalIssue>> GetIssueByArandaAsync(string aranda);
         Task<bool> CommentOnIssue(string idOrKey, string comment);
-        Task<List<IssueConComentariosReport>> GetIssuesByFechaApertura(DateTime startDate, DateTime endDate);
+        Task<List<IssueConComentariosReport>> GetIssuesByProjectId(string projectId, List<string> statusIds);
     }
 }

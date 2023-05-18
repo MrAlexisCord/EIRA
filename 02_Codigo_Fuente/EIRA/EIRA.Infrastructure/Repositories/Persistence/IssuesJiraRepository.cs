@@ -207,18 +207,20 @@ namespace EIRA.Infrastructure.Repositories.Persistence
             }
         }
 
-        public async Task<List<IssueConComentariosReport>> GetIssuesByFechaApertura(DateTime startDate, DateTime endDate)
+        public async Task<List<IssueConComentariosReport>> GetIssuesByProjectId(string projectId, List<string> statusIds)
         {
             var response = new List<Issue>();
             //string jqlStatement = "project%3DSE+AND+%22Fecha+Apertura%5BDate%5D%22+%3E+%222022-02-22%22+AND+%22Fecha+Apertura%5BDate%5D%22+%3E+%222023-01-10%22"
             var pageNumber = 0;
             var maxResults = 100;
+            var statusIdsJql = string.Join(",", statusIds);
             var keepQueryingIssues = true;
             while (keepQueryingIssues)
             {
                 var starAt = pageNumber * maxResults;
                 var paginationString = $"&startAt={starAt}&maxResults={maxResults}";
-                string jqlStatement = $"project=SE AND \"Fecha Apertura[Date]\" >= \"{startDate:yyyy-MM-dd}\" AND \"Fecha Apertura[Date]\" <= \"{endDate:yyyy-MM-dd}\"";
+                string jqlStatement = $"project={projectId} AND status in ({statusIdsJql})";
+                //string jqlStatement = $"project=SE AND \"Fecha Apertura[Date]\" >= \"{startDate:yyyy-MM-dd}\" AND \"Fecha Apertura[Date]\" <= \"{endDate:yyyy-MM-dd}\"";
                 string encodedJqlStatement = $"{HttpUtility.UrlEncode(jqlStatement)}{paginationString}";
                 var responseQuery = await _issuesService.GetIssuesByJQL<IssueWrapperResponse>(encodedJqlStatement);
                 if (responseQuery != null && responseQuery.Issues != null && responseQuery.Issues.Any())
@@ -248,7 +250,7 @@ namespace EIRA.Infrastructure.Repositories.Persistence
                 var issueWithComments = IssueWrapperResponseTransform.FromIssueToIssueConComentariosReport(issue, issueCommentsFormatted);
                 response.Add(issueWithComments);
             }
-            return response;
+            return response?.OrderBy(x => x.Prioridad)?.ThenBy(x => x.ResponsableCliente)?.ToList();
 
         }
 

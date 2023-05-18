@@ -41,27 +41,34 @@ namespace EIRA.Application.Models.External.JiraV3
 
     public partial class Fields
     {
-        [JsonProperty("project")]
-        public ProjectModel Project { get; set; }
+        //[JsonProperty("project")]
+        //public ProjectModel Project { get; set; }
         [JsonProperty("customfield_10084")]
         public string NumeroCaso { get; set; }
         [JsonProperty("customfield_10065")]
         public ValuableProp ResponsableCliente { get; set; } //N1
-        public string Tarea { get; set; } = "Obtener Tarea";
         [JsonProperty("customfield_10087")]
         public ValuableProp Complejidad { get; set; }
         [JsonProperty("customfield_10089")]
         public decimal? Prioridad { get; set; }
-        public string DescripcionCorta { get; set; } = "Descripción Corta Obtener";// Descripcion
+        //public string Tarea { get; set; } = "Obtener Tarea";
+        [JsonProperty("status")]
+        public Status Status { get; set; }
+        [JsonProperty("customfield_10103")]
+        public Customfield1010 HistoriaUsuario { get; set; } // DescripcionCorta
         [JsonProperty("customfield_10063")]
-        public ValuableProp Compania { get; set; }
+        public ValuableProp Compania { get; set; } // Empresa
         [JsonProperty("assignee")]
         public DisplayableNameProp Desarrollador { get; set; }
-        public DateTime? FechaEstimada { get; set; } // Cuál fecha estimada es?
+        //public DateTime? FechaEstimada { get; set; } // Cuál fecha estimada es?
         public string Observaciones { get; set; } // Comentarios
+        [JsonProperty("customfield_10092")]
         public DateTime? FechaEntregaAnalisisN1 { get; set; }
+        [JsonProperty("customfield_10097")]
         public DateTime? FechaEntregaPropuestaSolucion { get; set; }
+        [JsonProperty("customfield_10074")]
         public DateTime? FechaEntregaConstruccion { get; set; }
+        [JsonProperty("customfield_10101")]
         public DateTime? FechaCierre { get; set; }
     }
 

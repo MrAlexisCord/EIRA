@@ -15,18 +15,7 @@ namespace EIRA.Application.Features.Issues.Queries.GetReporteComentarios
 
         public async Task<List<IssueConComentariosReport>> Handle(GetReporteComentariosQuery request, CancellationToken cancellationToken)
         {
-            var startDate = new DateTime(day: 1, month: 3, year: 2023);
-            var endDate = new DateTime(day: 1, month: 5, year: 2023);
-            var response = await _issuesJiraRepository.GetIssuesByFechaApertura(startDate, endDate);
-            //return new List<IssueConComentariosReport>
-            //{
-            //    new IssueConComentariosReport{Entero=12345, EnteroNullable=23456, Fecha=DateTime.UtcNow, FechaNullable=DateTime.UtcNow, IssueKeyOrId="SE-10", NumeroAranda="66666"},
-            //    new IssueConComentariosReport{Entero=12345, EnteroNullable=null, Fecha=DateTime.UtcNow, FechaNullable=null, IssueKeyOrId="SE-10", NumeroAranda=null},
-            //    new IssueConComentariosReport{Entero=12345, EnteroNullable=23456, Fecha=DateTime.UtcNow, FechaNullable=DateTime.UtcNow, IssueKeyOrId=null, NumeroAranda="66666"},
-            //    new IssueConComentariosReport{Entero=12345, EnteroNullable=null, Fecha=DateTime.UtcNow, FechaNullable=DateTime.UtcNow, IssueKeyOrId="SE-10", NumeroAranda="66666"},
-            //    new IssueConComentariosReport{Entero=12345, EnteroNullable=23456, Fecha=DateTime.UtcNow, FechaNullable=null, IssueKeyOrId=null, NumeroAranda="66666"},
-            //    new IssueConComentariosReport(),
-            //};
+            var response = await _issuesJiraRepository.GetIssuesByProjectId(projectId: request.ProjectId, request.StatusIds);
             return response;
         }
     }
