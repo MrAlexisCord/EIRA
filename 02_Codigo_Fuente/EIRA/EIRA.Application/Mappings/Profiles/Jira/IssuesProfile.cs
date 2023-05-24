@@ -9,9 +9,14 @@ namespace EIRA.Application.Mappings.Profiles.Jira
         public IssuesProfile()
         {
             CreateMap<IssueCreateRequest, IssueUpdateRequest>();
+            CreateMap<IssueCreateRequest, IssueCreateAIRERequestBody>();
+            CreateMap<IssueCreateRequest, IssueCreateEnlaceRequestBody>();
+            CreateMap<IssueUpdateRequest, IssueUpdateAIRERequestBody>();
+            CreateMap<IssueUpdateRequest, IssueUpdateEnlaceRequestBody>();
+
             CreateMap<Status, StatusDTO>();
             CreateMap<ProjectsAllResponse, ProjectInfoDTO>()
-                .ForMember(x => x.ImageURL, source => source.MapFrom(campo => campo != null && campo.AvatarUrls != null && campo.AvatarUrls.The48X48!=null ? campo.AvatarUrls.The48X48.ToString(): string.Empty));
+                .ForMember(x => x.ImageURL, source => source.MapFrom(campo => campo != null && campo.AvatarUrls != null && campo.AvatarUrls.The48X48 != null ? campo.AvatarUrls.The48X48.ToString() : string.Empty));
         }
     }
 }

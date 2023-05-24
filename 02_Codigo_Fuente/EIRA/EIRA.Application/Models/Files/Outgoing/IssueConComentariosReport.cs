@@ -36,5 +36,37 @@ namespace EIRA.Application.Models.Files.Outgoing
         public DateTime? FechaEntregaConstruccion { get; set; }
         [ReportHeader("Fecha Cierre")]
         public DateTime? FechaCierre { get; set; }
+
+
+
+        [ReportHeader("Fecha Estimada Propuesta Solución")] // Nuevo // También en serviceCalls
+        public DateTime? FechaEstimadaPropuestaSolucion { get; set; }
+
+        [ReportHeader("Fecha Estimada Construcción")] // Nuevo // También en serviceCalls
+        public DateTime? FechaEstimadaConstruccion { get; set; }
+
+
+        // TIEMPOS service calls
+        [ReportHeader("Tiempo Estimado Propuesta Solución")]
+        public decimal? TiempoEstimadoPropuestaSolucion { get; set; }
+
+        [ReportHeader("Tiempo Estimado Construcción")]
+        public decimal? TiempoEstimadoConstruccion { get; set; }
+
+        [ReportHeader("Tiempo Estimado Soporte a Pruebas")]
+        public decimal? TiempoEstimadoSoportePruebas { get; set; }
+
+        
+        
+
+        [ReportHeader("Fecha de registro")]
+        public DateTime? FechaRegistro { get; set; }
+
+        [ReportHeader("Fecha Asignación")]
+        public DateTime? FechaAsignacion { get; set; }
+
+        [ReportHeader("Descripción Estado Cliente")] // ESTADO
+        public string EstadoCliente { get; set; }
+
     }
 }

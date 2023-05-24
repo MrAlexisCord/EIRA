@@ -70,15 +70,45 @@ namespace EIRA.Application.Models.External.JiraV3
         public DateTime? FechaEntregaConstruccion { get; set; }
         [JsonProperty("customfield_10101")]
         public DateTime? FechaCierre { get; set; }
-    }
 
-    public class ProjectModel
-    {
-        [JsonProperty("id")]
-        public string Id { get; set; }
-        [JsonProperty("key")]
-        public string Key { get; set; }
-        [JsonProperty("name")]
-        public string Name { get; set; }
+
+
+        //FULL REPORT
+        [JsonProperty("customfield_10105")]
+        public Customfield1010 DescripcionEstadoCliente { get; set; }
+        [JsonProperty("customfield_10102")] //Antigua Fecha Aranda customfield_10081
+        public DateTime? FechaApertura { get; set; }
+        [JsonProperty("customfield_10066")]
+        public DateTime? FechaAsignacion { get; set; }
+
+        // TIEMPOS
+        [JsonProperty("customfield_10098")]
+        public decimal? TiempoEstimadoPropuestaSolucion { get; set; }
+        [JsonProperty("customfield_10099")]
+        public decimal? TiempoEstimadoConstruccion { get; set; }
+        [JsonProperty("customfield_10100")]
+        public decimal? TiempoEstimadoSoportePruebas { get; set; }
+
+
+        //[JsonProperty("customfield_10093")]
+        //public DateTime? FechaEstimadaAnalisisN1 { get; set; }
+
+
+        [JsonProperty("customfield_10095")]
+        public DateTime? FechaEstimadaConstruccion { get; set; }
+
+        [JsonProperty("customfield_10096")]
+        public DateTime? FechaEstimadaPropuestaSolucion { get; set; }
+
+
+        public class ProjectModel
+        {
+            [JsonProperty("id")]
+            public string Id { get; set; }
+            [JsonProperty("key")]
+            public string Key { get; set; }
+            [JsonProperty("name")]
+            public string Name { get; set; }
+        }
     }
 }

@@ -16,8 +16,9 @@ namespace EIRA.Application.Features.Projects.Queries.GetAllProjects
 
         public async Task<Response<List<ProjectInfoDTO>>> Handle(GetAllProjectsQuery request, CancellationToken cancellationToken)
         {
+            var includers = new List<string>() { "SE", "AS" };
             var response = await _projectsRepository.GetAllProjects();
-            return new Response<List<ProjectInfoDTO>>(response);
+            return new Response<List<ProjectInfoDTO>>(response?.Where(x => includers.Contains(x.Key))?.ToList());
         }
     }
 }

@@ -11,4 +11,9 @@ namespace EIRA.Application.Models.External.JiraV3
         [JsonProperty("self")]
         public string Self { get; set; }
     }
+
+    public class IssueUpdatedResponse : IssueCreatedResponse
+    {
+
+    }
 }

@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace EIRA.Application.Models.External.JiraV3
 {
-    public class IssueCreateRequest : BaseIssueRequestModel
+    public class IssueCreateEnlaceRequestBody
     {
         [JsonProperty("project")]
         public KeyableProp Project { get; set; }
@@ -96,15 +96,5 @@ namespace EIRA.Application.Models.External.JiraV3
         [JsonProperty("customfield_10103")]
         public Customfield1010 HistoriaUsuario { get; set; }
 
-
-        // AIR-E
-        [JsonProperty("customfield_10107")]
-        public List<ValuableProp> Reporte { get; set; }
-        [JsonProperty("customfield_10110")]
-        public List<ValuableProp> ResponsablesMultiples { get; set; }
-        [JsonProperty("customfield_10109")]
-        public DateTime? FechaSolucion { get; set; }
-        [JsonProperty("customfield_10101")]
-        public DateTime? FechaCierre { get; set; }
     }
 }

@@ -2,6 +2,7 @@
 using EIRA.Application.Models.External.JiraV3.TypeOfPropertiesClasses;
 using EIRA.Application.Models.Files.Incoming;
 using EIRA.Application.Statics.Enumerations;
+using EIRA.Application.Statics.Files;
 using EIRA.Application.Statics.Jira;
 
 namespace EIRA.Application.Mappings.Transforms
@@ -12,14 +13,14 @@ namespace EIRA.Application.Mappings.Transforms
         {
             var output = new IssueCreateRequest
             {
-                Project = new IdentifiableProp
+                Project = new KeyableProp
                 {
-                    Id = JiraConfiguration.ProyectoId
+                    Key = source.Proyecto
                 },
                 Summary = source.Resumen.GetStringOrFallback("Sin Resumen"),
                 Issuetype = new IdentifiableProp
                 {
-                    Id = GetIssueTypeId(requestTypeTarget)
+                    Id = GetIssueTypeId(requestTypeTarget, source.Proyecto.ToUpper())
                 },
                 Assignee = new IdentifiableProp
                 {
@@ -28,10 +29,6 @@ namespace EIRA.Application.Mappings.Transforms
                 Compania = new ValuableProp
                 {
                     Value = source.Compania == "SURTIGAS" ? "STG" : source.Compania
-                },
-                ResponsableCliente = new ValuableProp
-                {
-                    Value = GetResponsable(source.ResponsableCliente, responsibleList, defaultResponsible),
                 },
                 FechaAsignacionAranda = source.FechaAsignacion.ToUniversalTime(),
                 NumeroAranda = source.NumeroCaso,
@@ -76,6 +73,13 @@ namespace EIRA.Application.Mappings.Transforms
                 };
             }
 
+            if (!string.IsNullOrEmpty(source.ResponsableCliente) && !string.IsNullOrEmpty(source.ResponsableCliente.Trim()))
+            {
+                output.ResponsableCliente = new ValuableProp
+                {
+                    Value = GetResponsable(source.ResponsableCliente, responsibleList, defaultResponsible),
+                };
+            }
 
             if (source.Prioridad.HasValue)
             {
@@ -117,27 +121,27 @@ namespace EIRA.Application.Mappings.Transforms
 
 
             // FECHAS
-            if (source.FechaEntregaAnalisisN1.HasValue && source.FechaEntregaAnalisisN1.Value.Year >= 1999)
+            if (source.FechaEntregaAnalisisN1.HasValue && source.FechaEntregaAnalisisN1.Value.Year >= ExcelLimits.MinYear)
             {
                 output.FechaEntregaAnalisisN1 = source.FechaEntregaAnalisisN1;
             }
 
-            if (source.FechaEstimadaPropuestaSolucion.HasValue && source.FechaEstimadaPropuestaSolucion.Value.Year >= 1999)
+            if (source.FechaEstimadaPropuestaSolucion.HasValue && source.FechaEstimadaPropuestaSolucion.Value.Year >= ExcelLimits.MinYear)
             {
                 output.FechaEstimadaPropuestaSolucion = source.FechaEstimadaPropuestaSolucion;
             }
 
-            if (source.FechaEntregaPropuestaSolucion.HasValue && source.FechaEntregaPropuestaSolucion.Value.Year >= 1999)
+            if (source.FechaEntregaPropuestaSolucion.HasValue && source.FechaEntregaPropuestaSolucion.Value.Year >= ExcelLimits.MinYear)
             {
                 output.FechaEntregaPropuestaSolucion = source.FechaEntregaPropuestaSolucion;
             }
 
-            if (source.FechaEstimadaConstruccion.HasValue && source.FechaEstimadaConstruccion.Value.Year >= 1999)
+            if (source.FechaEstimadaConstruccion.HasValue && source.FechaEstimadaConstruccion.Value.Year >= ExcelLimits.MinYear)
             {
                 output.FechaEstimadaConstruccion = source.FechaEstimadaConstruccion;
             }
 
-            if (source.FechaEntregaConstruccion.HasValue && source.FechaEntregaConstruccion.Value.Year >= 1999)
+            if (source.FechaEntregaConstruccion.HasValue && source.FechaEntregaConstruccion.Value.Year >= ExcelLimits.MinYear)
             {
                 output.FechaEntregaConstruccion = source.FechaEntregaConstruccion;
             }
@@ -160,6 +164,28 @@ namespace EIRA.Application.Mappings.Transforms
             }
 
 
+            // AIR-E
+            if (!string.IsNullOrEmpty(source.ResponsablesMultiples) && !string.IsNullOrEmpty(source.ResponsablesMultiples.Trim()))
+            {
+                output.ResponsablesMultiples = source?.ResponsablesMultiples?.Split(";").Select(x => new ValuableProp { Value = x?.Trim() })?.ToList();
+            }
+
+            if (!string.IsNullOrEmpty(source.Reporte) && !string.IsNullOrEmpty(source.Reporte.Trim()))
+            {
+                output.Reporte = source?.Reporte?.Split(";").Select(x => new ValuableProp { Value = x?.Trim() })?.ToList();
+            }
+
+            if (source.FechaSolucion.HasValue && source.FechaSolucion.Value.Year >= ExcelLimits.MinYear)
+            {
+                output.FechaSolucion = source.FechaSolucion;
+            }
+
+            if (source.FechaCierre.HasValue && source.FechaCierre.Value.Year >= ExcelLimits.MinYear)
+            {
+                output.FechaCierre = source.FechaCierre;
+            }
+
+
             return output;
         }
 
@@ -168,8 +194,13 @@ namespace EIRA.Application.Mappings.Transforms
             return requestTypeTarget == RequestTypeTarget.Desarollo ? CaseTypeIssueEnum.Development : CaseTypeIssueEnum.Incident;
         }
 
-        private static string GetIssueTypeId(RequestTypeTarget requestTypeTarget)
+        private static string GetIssueTypeId(RequestTypeTarget requestTypeTarget, string proyectKey)
         {
+            if (proyectKey == "AS")
+            {
+                return "10015";
+            }
+
             var caseType = GetCaseType(requestTypeTarget);
 
             return caseType switch

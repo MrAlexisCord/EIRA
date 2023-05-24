@@ -42,7 +42,7 @@ namespace EIRA.Infrastructure.Repositories.Persistence
                 {
                     var body = issue.ToIssueCreateRequest(responsibleList, defaultResponsible, requestTypeTarget);
                     var comentarios = issue.Comentarios;
-                    var issuesInJiraByAranda = await this.GetIssueByArandaAsync(body.NumeroAranda);
+                    var issuesInJiraByAranda = await this.GetIssueByArandaAsync(body.NumeroAranda, body.Project.Key);
 
                     if (issuesInJiraByAranda is not null && issuesInJiraByAranda.Any())
                     {
@@ -59,9 +59,9 @@ namespace EIRA.Infrastructure.Repositories.Persistence
             return logsError;
         }
 
-        public async Task<List<MinimalIssue>> GetIssueByArandaAsync(string aranda)
+        public async Task<List<MinimalIssue>> GetIssueByArandaAsync(string aranda, string projectKeyOrId)
         {
-            var response = await _issuesService.IssueByArandaNumber<BaseIssuesJiraResult<List<MinimalIssue>>>(aranda);
+            var response = await _issuesService.IssueByArandaNumber<BaseIssuesJiraResult<List<MinimalIssue>>>(aranda, projectKeyOrId);
             if (response is null || response.Total < 1 || response.Issues is null || !response.Issues.Any())
                 return null;
 
@@ -72,15 +72,28 @@ namespace EIRA.Infrastructure.Repositories.Persistence
         {
             try
             {
-                body.FieldCreateValidation(logsError);
-                var response = await _issuesService.Create<IssueCreatedResponse>(new BaseFieldsPostBodyRequest<IssueCreateRequest> { Fields = body }, "");
-                await SetComments(response.Key, comentarios);
+                switch (body.Project.Key)
+                {
+                    case "AS":
+                        var asBody = _mapper.Map<IssueCreateAIRERequestBody>(body);
+                        var responseAs = await _issuesService.Create<IssueCreatedResponse, IssueCreateAIRERequestBody>(new BaseFieldsPostBodyRequest<IssueCreateAIRERequestBody> { Fields = asBody }, "");
+                        await SetComments(responseAs.Key, comentarios);
+                        break;
+                    case "SE":
+                        body.FieldCreateValidation(logsError);
+                        var enlaceBody = _mapper.Map<IssueCreateEnlaceRequestBody>(body);
+                        var enlaceResponse = await _issuesService.Create<IssueCreatedResponse, IssueCreateEnlaceRequestBody>(new BaseFieldsPostBodyRequest<IssueCreateEnlaceRequestBody> { Fields = enlaceBody }, "");
+                        await SetComments(enlaceResponse.Key, comentarios);
+                        break;
+                }
             }
             catch (ExternalApiException ex)
             {
+                string errMessage = ex.Result is not null && ex.Result.GetType()?.GetProperty("Message")?.GetValue(ex.Result) != null ? ex.Result.GetType()?.GetProperty("Message")?.GetValue(ex.Result).ToString() : ex.GetOneLineMessage();
+
                 logsError.Add(new JiraUploadIssueErrorLog
                 {
-                    ErrorMessage = ex.GetOneLineMessage(),
+                    ErrorMessage = errMessage,
                     NumeroAranda = body.NumeroAranda,
                     IssueKeyOrId = string.Empty,
                     Operation = CrudOperations.CREATE,
@@ -117,15 +130,30 @@ namespace EIRA.Infrastructure.Repositories.Persistence
                 try
                 {
                     var issueToModify = issuesInJiraByAranda[0];
-                    var errorsCount = body.FieldUpdateValidation(logsError);
-                    var response = await _issuesService.Update<object>(issueToModify.Key, new BaseFieldsPostBodyRequest<IssueUpdateRequest> { Fields = body }, "");
-                    await SetComments(issueToModify.Key, comentarios);
+                    switch (body.Project.Key)
+                    {
+                        case "AS":
+                            var asBody = _mapper.Map<IssueUpdateAIRERequestBody>(body);
+                            var responseAs = await _issuesService.Update<IssueUpdatedResponse, IssueUpdateAIRERequestBody>(issueToModify.Key, new BaseFieldsPostBodyRequest<IssueUpdateAIRERequestBody> { Fields = asBody }, "");
+                            await SetComments(issueToModify.Key, comentarios);
+                            break;
+                        case "SE":
+                            var errorsCount = body.FieldUpdateValidation(logsError);
+                            var enlaceBody = _mapper.Map<IssueUpdateEnlaceRequestBody>(body);
+                            var enlaceResponse = await _issuesService.Update<IssueUpdatedResponse, IssueUpdateEnlaceRequestBody>(issueToModify.Key, new BaseFieldsPostBodyRequest<IssueUpdateEnlaceRequestBody> { Fields = enlaceBody }, "");
+                            await SetComments(issueToModify.Key, comentarios);
+                            break;
+                    }
+
+                    //var response = await _issuesService.Update<object>(issueToModify.Key, new BaseFieldsPostBodyRequest<IssueUpdateRequest> { Fields = body }, "");
+                    //await SetComments(issueToModify.Key, comentarios);
                 }
                 catch (ExternalApiException ex)
                 {
+                    string errMessage = ex.Result is not null && ex.Result.GetType()?.GetProperty("Message")?.GetValue(ex.Result) != null ? ex.Result.GetType()?.GetProperty("Message")?.GetValue(ex.Result).ToString() : ex.GetOneLineMessage();
                     logsError.Add(new JiraUploadIssueErrorLog
                     {
-                        ErrorMessage = ex.GetOneLineMessage(),
+                        ErrorMessage = errMessage,
                         NumeroAranda = body.NumeroAranda,
                         IssueKeyOrId = string.Join(",", issuesInJiraByAranda.Select(x => x.Key)),
                         Operation = CrudOperations.UPDATE,

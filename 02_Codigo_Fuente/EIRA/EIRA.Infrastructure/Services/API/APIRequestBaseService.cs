@@ -1,6 +1,7 @@
 ﻿using EIRA.Application.DTOs;
 using EIRA.Application.Exceptions;
 using EIRA.Application.Models.External;
+using EIRA.Application.Models.External.JiraV3.Error;
 using EIRA.Application.Services;
 using EIRA.Application.Services.API;
 using EIRA.Application.Statics;
@@ -26,7 +27,7 @@ namespace EIRA.Infrastructure.Services.API
             _cacheService = cacheService;
         }
 
-        public async Task<T> SendAsync<T>(ApiRequest apiRequest, bool authRequest = false)
+        public async Task<T> SendAsync<T>(ApiRequest apiRequest, bool authRequest = false, bool expectJiraIssueError = false)
         {
             try
             {
@@ -75,6 +76,11 @@ namespace EIRA.Infrastructure.Services.API
 
                 var apiContent = await apiResponse.Content.ReadAsStringAsync();
 
+                if (expectJiraIssueError)
+                {
+                    FindOutJiraError(apiContent);
+                }
+
                 var apiResponseDto = JsonConvert.DeserializeObject<T>(apiContent);
 
                 return apiResponseDto;
@@ -84,9 +90,9 @@ namespace EIRA.Infrastructure.Services.API
                 var externalApiException = new ExternalApiException(message: "Error on Jira Request")
                 {
                     ErrorMessages = new List<string> { Convert.ToString(ex.Message) },
-                    IsSuccess = false
+                    IsSuccess = false,
+                    Result = ex
                 };
-                externalApiException.Result = ex;
 
                 throw externalApiException;
             }
@@ -95,6 +101,36 @@ namespace EIRA.Infrastructure.Services.API
         public void Dispose()
         {
             GC.SuppressFinalize(true);
+        }
+
+        private void FindOutJiraError(string apiContent)
+        {
+            try
+            {
+                var apiErrorResponse = JsonConvert.DeserializeObject<JiraErrorResponse>(apiContent);
+                if (apiErrorResponse is not null &&
+                    ((apiErrorResponse.Errors is not null && apiErrorResponse.Errors.Any())
+                    ||
+                    (apiErrorResponse.ErrorMessages is not null && apiErrorResponse.ErrorMessages.Any()))
+                    )
+                {
+                    if (apiErrorResponse.Errors is not null && apiErrorResponse.Errors.Any())
+                    {
+                        var errMessage = apiErrorResponse.Errors.Select(x => $"{x.Key} - {x.Value}");
+                        throw new Exception(message: string.Join(" - ", errMessage));
+                    }
+
+                    if (apiErrorResponse.ErrorMessages is not null && apiErrorResponse.ErrorMessages.Any())
+                    {
+                        var errMessage = apiErrorResponse.ErrorMessages.Select(x => x.ToString());
+                        throw new Exception(message: string.Join(" - ", errMessage));
+                    }
+                }
+            }
+            catch
+            {
+                throw;
+            }
         }
     }
 }

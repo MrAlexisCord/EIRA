@@ -3,5 +3,6 @@
     public interface IProjectsService
     {
         Task<T> GetAllProjects<T>();
+        Task<T> AssignableUsersByProjectId<T>(string projectKeyOrId);
     }
 }

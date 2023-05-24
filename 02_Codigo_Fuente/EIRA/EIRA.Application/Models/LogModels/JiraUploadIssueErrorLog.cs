@@ -8,7 +8,7 @@ namespace EIRA.Application.Models.LogModels
         public string Operation { get; set; }
         [ReportHeader("Issue")]
         public string IssueKeyOrId { get; set; }
-        [ReportHeader("Número de Aranda")]
+        [ReportHeader("Incidente")]
         public string NumeroAranda { get; set; }
         [ReportHeader("Error")]
         public string ErrorMessage { get; set; }

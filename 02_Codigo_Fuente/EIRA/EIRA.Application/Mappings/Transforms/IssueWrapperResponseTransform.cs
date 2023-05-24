@@ -28,7 +28,16 @@ namespace EIRA.Application.Mappings.Transforms
                 //Tarea = issue?.Fields?.Tarea ?? string.Empty,
                 Estado = issue?.Fields?.Status?.Name ?? string.Empty,
 
-                
+                // FUll Report
+                EstadoCliente = (issue?.Fields?.DescripcionEstadoCliente?.Content?.FirstOrDefault()?.Content?.FirstOrDefault()?.Text ?? string.Empty).Replace("\n", Environment.NewLine),
+                FechaAsignacion = issue?.Fields?.FechaAsignacion,
+                FechaEstimadaConstruccion = issue?.Fields?.FechaEstimadaConstruccion,
+                FechaEstimadaPropuestaSolucion = issue?.Fields?.FechaEstimadaPropuestaSolucion,
+                FechaRegistro = issue?.Fields?.FechaApertura,
+                TiempoEstimadoConstruccion = issue?.Fields?.TiempoEstimadoConstruccion,
+                TiempoEstimadoPropuestaSolucion = issue?.Fields?.TiempoEstimadoPropuestaSolucion,
+                TiempoEstimadoSoportePruebas = issue?.Fields?.TiempoEstimadoSoportePruebas,
+
             };
         }
     }

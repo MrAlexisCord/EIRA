@@ -71,7 +71,7 @@ namespace EIRA.API.Controllers
             });
 
             var response = await Mediator.Send(request);
-            var fileName = $"reporte-issues-{DateTime.Now.ExportableDateTimeFormat()}.xlsx";
+            var fileName = $"reporte-seguimiento-{DateTime.Now.ExportableDateTimeFormat()}.xlsx";
             var propNames = new string[]
             {
                 //nameof(IssueConComentariosReport.IssueKeyOrId),
@@ -90,6 +90,49 @@ namespace EIRA.API.Controllers
                 nameof(IssueConComentariosReport.FechaEntregaPropuestaSolucion),
                 nameof(IssueConComentariosReport.FechaEntregaConstruccion),
                 nameof(IssueConComentariosReport.FechaCierre),
+            };
+            var filePath = _excelService.WriteExcel(response, propNames, fileName);
+            return DownloadExcelFile(filePath, fileName);
+        }
+
+        [HttpPost("GetReporteTotal")]
+        public async Task<IActionResult> GetReporteTotal(GetReporteComentariosQuery request)
+        {
+            await _cacheRepository.GetUserInfoInCache(new AuthLoginRequestBody
+            {
+                UserName = "cesar.figueroa@olsoftware.com",
+                JiraApiKey = "ATATT3xFfGF0A48NnkRMeLReao06WQBy93psM6hYoHvlaQomCCGZQKg9EQnw9N2aYVAm_B7OiIlZjPnhTn8IQuOsL9G7-lniBeCnGozMcQn4VinAF_rJmAz0v_tgjPgIIZba7EvH8Xo9zmSSHBaDQ3_KJqnTTmIa4fmGgTRcmZKnAxQ9r3vckEk=20FB03B8"
+            });
+
+            var response = await Mediator.Send(request);
+            var fileName = $"reporte-total-{DateTime.Now.ExportableDateTimeFormat()}.xlsx";
+            var propNames = new string[]
+            {
+                //nameof(IssueConComentariosReport.IssueKeyOrId),
+                //nameof(IssueConComentariosReport.Project),
+                nameof(IssueConComentariosReport.NumeroCaso),
+                nameof(IssueConComentariosReport.ResponsableCliente),
+                //nameof(IssueConComentariosReport.Tarea),
+                nameof(IssueConComentariosReport.Complejidad),
+                nameof(IssueConComentariosReport.Prioridad),
+                nameof(IssueConComentariosReport.Estado),
+                nameof(IssueConComentariosReport.EstadoCliente ), // FULL
+                nameof(IssueConComentariosReport.DescripcionCorta),
+                nameof(IssueConComentariosReport.Compania),
+                nameof(IssueConComentariosReport.Desarrollador),
+                nameof(IssueConComentariosReport.Observaciones),
+                nameof(IssueConComentariosReport.FechaRegistro), // FULL
+                nameof(IssueConComentariosReport.FechaAsignacion ), // FULL
+                nameof(IssueConComentariosReport.FechaEntregaAnalisisN1),
+                nameof(IssueConComentariosReport.FechaEntregaPropuestaSolucion),
+                nameof(IssueConComentariosReport.FechaEntregaConstruccion),
+                nameof(IssueConComentariosReport.FechaEstimadaConstruccion ), // FULL
+                nameof(IssueConComentariosReport.FechaEstimadaPropuestaSolucion ), // FULL
+                nameof(IssueConComentariosReport.FechaCierre),
+                nameof(IssueConComentariosReport.TiempoEstimadoConstruccion), // FULL
+                nameof(IssueConComentariosReport.TiempoEstimadoPropuestaSolucion ), // FULL
+                nameof(IssueConComentariosReport.TiempoEstimadoSoportePruebas), // FULL
+
             };
             var filePath = _excelService.WriteExcel(response, propNames, fileName);
             return DownloadExcelFile(filePath, fileName);

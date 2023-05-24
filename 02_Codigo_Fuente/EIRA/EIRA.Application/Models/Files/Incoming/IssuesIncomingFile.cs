@@ -1,4 +1,5 @@
 ﻿using EIRA.Application.Attributes;
+using Newtonsoft.Json;
 
 namespace EIRA.Application.Models.Files.Incoming
 {
@@ -75,31 +76,27 @@ namespace EIRA.Application.Models.Files.Incoming
         [ReportHeader("Resumen")] // NO_CASO
         public string Resumen { get; set; }
 
-        [ReportHeader("Comentarios")] // NO_CASO
+        [ReportHeader("Comentarios")] // COMENTARIOS / OBSERVACIONES
         public string Comentarios { get; set; }
 
+        // Proyecto Key
+        [ReportHeader("Proyecto")] // Proyect Key
+        public string Proyecto { get; set; }
 
 
 
+        // AIR-E
+        [ReportHeader("Reporte")] // COMENTARIOS / OBSERVACIONES
+        public string Reporte { get; set; }
 
+        [ReportHeader("Responsable AIR-E")]
+        public string ResponsablesMultiples { get; set; }
 
+        [ReportHeader("Fecha Solución")]
+        public DateTime? FechaSolucion { get; set; }
 
+        [ReportHeader("Fecha Cierre")]
+        public DateTime? FechaCierre { get; set; }
 
-
-
-
-        //[ReportHeader("Cliente")]
-        //public string Cliente { get; set; }
-
-        //[ReportHeader("GRUPO")]
-        //public string Grupo { get; set; }
-
-
-        //[ReportHeader("Asunto")]//ASUNTO
-        //public string Summary { get; set; }
-
-
-        //[ReportHeader("TIPO_CASO")]
-        //public string TipoCaso { get; set; }
     }
 }

@@ -5,6 +5,6 @@ namespace EIRA.Application.Services.API
     public interface IAPIRequestBaseService: IDisposable
     {
         ExternalResponseModel ResponseModel { get; set; }
-        Task<T> SendAsync<T>(ApiRequest apiRequest, bool authRequest);
+        Task<T> SendAsync<T>(ApiRequest apiRequest, bool authRequest = false, bool expectJiraIssueError = false);
     }
 }

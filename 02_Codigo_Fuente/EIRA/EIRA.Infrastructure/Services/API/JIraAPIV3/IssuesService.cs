@@ -3,7 +3,6 @@ using EIRA.Application.Models.External.JiraV3;
 using EIRA.Application.Services;
 using EIRA.Application.Services.API.JiraAPIV3;
 using EIRA.Application.Statics;
-using EIRA.Application.Statics.Jira;
 using static EIRA.Application.Statics.ExternalEndpoint;
 
 namespace EIRA.Infrastructure.Services.API.JIraAPIV3
@@ -14,24 +13,24 @@ namespace EIRA.Infrastructure.Services.API.JIraAPIV3
         {
         }
 
-        public async Task<T> Create<T>(BaseFieldsPostBodyRequest<IssueCreateRequest> issueBody, string token)
+        public async Task<T> Create<T, Z>(BaseFieldsPostBodyRequest<Z> issueBody, string token)
         {
             return await this.SendAsync<T>(new ApiRequest
             {
                 ApiType = ApiType.POST,
                 Data = issueBody,
                 Url = $"{ExternalEndpoint.JiraAPIBaseV3}/issue",
-            });
+            }, expectJiraIssueError: true);
         }
 
-        public async Task<T> Update<T>(string issueIdOrKey, BaseFieldsPostBodyRequest<IssueUpdateRequest> issueBody, string token)
+        public async Task<T> Update<T, Z>(string issueIdOrKey, BaseFieldsPostBodyRequest<Z> issueBody, string token)
         {
             return await this.SendAsync<T>(new ApiRequest
             {
                 ApiType = ApiType.PUT,
                 Data = issueBody,
                 Url = $"{ExternalEndpoint.JiraAPIBaseV3}/issue/{issueIdOrKey}",
-            });
+            }, expectJiraIssueError: true);
         }
 
         public async Task<T> GetIssueByIdOrKey<T>(string idOrKey, string token)
@@ -43,12 +42,12 @@ namespace EIRA.Infrastructure.Services.API.JIraAPIV3
             });
         }
 
-        public async Task<T> IssueByArandaNumber<T>(string arandaNumber)
+        public async Task<T> IssueByArandaNumber<T>(string arandaNumber, string projectIdOrKey)
         {
             return await this.SendAsync<T>(new ApiRequest
             {
                 ApiType = ApiType.GET,
-                Url = $"{ExternalEndpoint.JiraAPIBaseV3}/search?fields=maxResults&maxResults=50&jql=project%3D{JiraConfiguration.ProyectoId}%20AND%20\"Incidencia%5BShort%20text%5D\"~{arandaNumber}",
+                Url = $"{ExternalEndpoint.JiraAPIBaseV3}/search?fields=maxResults&maxResults=50&jql=project%3D{projectIdOrKey}%20AND%20\"Incidencia%5BShort%20text%5D\"~{arandaNumber}",
             });
 
         }

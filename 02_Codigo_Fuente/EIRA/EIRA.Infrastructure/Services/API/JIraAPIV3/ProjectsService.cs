@@ -20,5 +20,14 @@ namespace EIRA.Infrastructure.Services.API.JIraAPIV3
                 Url = $"{ExternalEndpoint.JiraAPIBaseV3}/project/recent",
             });
         }
+
+        public async Task<T>  AssignableUsersByProjectId<T>(string projectKeyOrId)
+        {
+            return await this.SendAsync<T>(new ApiRequest
+            {
+                ApiType = ApiType.GET,
+                Url = $"{ExternalEndpoint.JiraAPIBaseV3}/user/assignable/search?project={projectKeyOrId}",
+            });
+        }
     }
 }
