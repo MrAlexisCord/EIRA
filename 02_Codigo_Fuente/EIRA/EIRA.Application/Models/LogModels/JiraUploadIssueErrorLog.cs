@@ -4,6 +4,8 @@ namespace EIRA.Application.Models.LogModels
 {
     public class JiraUploadIssueErrorLog
     {
+        [ReportHeader("Proyecto")]
+        public string Proyecto { get; set; } = string.Empty;
         [ReportHeader("Operación")]
         public string Operation { get; set; }
         [ReportHeader("Issue")]

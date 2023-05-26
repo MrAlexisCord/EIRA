@@ -6,6 +6,7 @@ namespace EIRA.Application.Statics.Reports
     {
         public static string[] ISSUES_ERROR_LOG_HEADERS = new string[]
         {
+            nameof(JiraUploadIssueErrorLog.Proyecto),
             nameof(JiraUploadIssueErrorLog.NumeroAranda),
             nameof(JiraUploadIssueErrorLog.IssueKeyOrId),
             nameof(JiraUploadIssueErrorLog.ErrorMessage),

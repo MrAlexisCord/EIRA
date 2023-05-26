@@ -93,6 +93,7 @@ namespace EIRA.Infrastructure.Repositories.Persistence
 
                 logsError.Add(new JiraUploadIssueErrorLog
                 {
+                    Proyecto = body?.Project?.Key ?? string.Empty,
                     ErrorMessage = errMessage,
                     NumeroAranda = body.NumeroAranda,
                     IssueKeyOrId = string.Empty,
@@ -104,6 +105,7 @@ namespace EIRA.Infrastructure.Repositories.Persistence
 
                 logsError.Add(new JiraUploadIssueErrorLog
                 {
+                    Proyecto = body?.Project?.Key ?? string.Empty,
                     ErrorMessage = ex.Message,
                     NumeroAranda = body.NumeroAranda,
                     IssueKeyOrId = string.Empty,
@@ -119,7 +121,8 @@ namespace EIRA.Infrastructure.Repositories.Persistence
             {
                 logsError.Add(new JiraUploadIssueErrorLog
                 {
-                    ErrorMessage = $"El Número de Aranda {body.NumeroAranda} se encuentra en varias issues",
+                    Proyecto = body?.Project?.Key ?? string.Empty,
+                    ErrorMessage = $"El Incidente No {body.NumeroAranda} se encuentra en varias issues",
                     NumeroAranda = body.NumeroAranda,
                     IssueKeyOrId = string.Join(",", issuesInJiraByAranda.Select(x => x.Key)),
                     Operation = CrudOperations.UPDATE,
@@ -153,6 +156,7 @@ namespace EIRA.Infrastructure.Repositories.Persistence
                     string errMessage = ex.Result is not null && ex.Result.GetType()?.GetProperty("Message")?.GetValue(ex.Result) != null ? ex.Result.GetType()?.GetProperty("Message")?.GetValue(ex.Result).ToString() : ex.GetOneLineMessage();
                     logsError.Add(new JiraUploadIssueErrorLog
                     {
+                        Proyecto = body?.Project?.Key ?? string.Empty,
                         ErrorMessage = errMessage,
                         NumeroAranda = body.NumeroAranda,
                         IssueKeyOrId = string.Join(",", issuesInJiraByAranda.Select(x => x.Key)),
@@ -164,6 +168,7 @@ namespace EIRA.Infrastructure.Repositories.Persistence
 
                     logsError.Add(new JiraUploadIssueErrorLog
                     {
+                        Proyecto = body?.Project?.Key ?? string.Empty,
                         ErrorMessage = ex.Message,
                         NumeroAranda = body.NumeroAranda,
                         IssueKeyOrId = string.Join(",", issuesInJiraByAranda.Select(x => x.Key)),
