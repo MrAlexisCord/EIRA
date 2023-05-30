@@ -2,21 +2,26 @@
 using EIRA.Application.Contracts.Auth.CacheRepository;
 using EIRA.Application.Contracts.Persistence;
 using EIRA.Application.Contracts.Persistence.CacheRepository;
+using EIRA.Application.Contracts.Persistence.Eira;
 using EIRA.Application.Services;
 using EIRA.Application.Services.API;
 using EIRA.Application.Services.API.JiraAPIV3;
 using EIRA.Application.Services.Files;
+using EIRA.Infrastructure.DbContexts.SqlServerContexts;
 using EIRA.Infrastructure.FileManagers.CSV;
 using EIRA.Infrastructure.FileManagers.Excel;
 using EIRA.Infrastructure.Repositories.Auth;
 using EIRA.Infrastructure.Repositories.Auth.CacheRepository;
+using EIRA.Infrastructure.Repositories.Eira;
 using EIRA.Infrastructure.Repositories.Persistence;
 using EIRA.Infrastructure.Repositories.Persistence.CacheRepository;
 using EIRA.Infrastructure.Services;
 using EIRA.Infrastructure.Services.API;
 using EIRA.Infrastructure.Services.API.JIraAPIV3;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 
 namespace EIRA.Infrastructure
 {
@@ -24,6 +29,14 @@ namespace EIRA.Infrastructure
     {
         public static void AddInfrastructureService(this IServiceCollection services, IConfiguration configuration)
         {
+            // SQL Server
+            services.AddDbContext<EiraContext>(options =>
+                options.UseSqlServer(configuration.GetConnectionString("defaultConnection"))
+            );
+
+            //Generic Repository
+            services.AddScoped(typeof(IAsyncRepository<>), typeof(ApplicationRepository<>));
+
             // Cache Service
             services.AddMemoryCache();
             services.AddScoped<ICacheService, CacheService>();
