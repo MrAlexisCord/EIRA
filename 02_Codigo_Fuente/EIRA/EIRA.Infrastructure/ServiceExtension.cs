@@ -72,7 +72,9 @@ namespace EIRA.Infrastructure
 
             // Services and repositories from EIRA
             services.AddScoped<ICustomFieldsRepository, CustomFieldsRepository>();
+            services.AddScoped<IIssueTypeRepository, IssueTypeRepository>();
             services.AddScoped<ICustomFieldsCacheRepository, CustomFieldCacheRepository>();
+            services.AddScoped<IIssueTypeCacheRepository, IssueTypeCacheRepository>();
         }
     }
 }

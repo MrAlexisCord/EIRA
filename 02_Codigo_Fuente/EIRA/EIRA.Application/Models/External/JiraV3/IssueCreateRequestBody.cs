@@ -13,7 +13,8 @@ namespace EIRA.Application.Models.External.JiraV3
         public string Summary { get; set; }
 
         [JsonProperty("issuetype")]
-        public IdentifiableProp Issuetype { get; set; }
+        public NameableProp Issuetype { get; set; }
+        //public IdentifiableProp Issuetype { get; set; }
 
         [JsonProperty("assignee")]
         public IdentifiableProp Assignee { get; set; }

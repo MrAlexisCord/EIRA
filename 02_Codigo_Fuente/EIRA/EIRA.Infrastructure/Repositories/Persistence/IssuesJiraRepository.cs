@@ -21,14 +21,16 @@ namespace EIRA.Infrastructure.Repositories.Persistence
         private readonly IIssuesService _issuesService;
         private readonly IResponsibleCacheRepository _responsibleCacheRepository;
         private readonly ICustomFieldsCacheRepository _customFieldsCacheRepository;
+        private readonly IIssueTypeCacheRepository _issueTypeCacheRepository;
         private readonly IMapper _mapper;
 
-        public IssuesJiraRepository(IIssuesService issuesService, IResponsibleCacheRepository responsibleCacheRepository, IMapper mapper, ICustomFieldsCacheRepository customFieldsCacheRepository)
+        public IssuesJiraRepository(IIssuesService issuesService, IResponsibleCacheRepository responsibleCacheRepository, IMapper mapper, ICustomFieldsCacheRepository customFieldsCacheRepository, IIssueTypeCacheRepository issueTypeCacheRepository)
         {
             _issuesService = issuesService;
             _responsibleCacheRepository = responsibleCacheRepository;
             _mapper = mapper;
             _customFieldsCacheRepository = customFieldsCacheRepository;
+            _issueTypeCacheRepository = issueTypeCacheRepository;
         }
 
         public async Task<List<JiraUploadIssueErrorLog>> PostIssuesAsync(List<IssuesIncomingFile> source, RequestTypeTarget requestTypeTarget)
@@ -36,6 +38,13 @@ namespace EIRA.Infrastructure.Repositories.Persistence
             var logsError = new List<JiraUploadIssueErrorLog>();
 
             var responsibleList = await _responsibleCacheRepository.GetCachedResponsibleList();
+            var issueTypeConfiguration = await _issueTypeCacheRepository.GetIssueTypeConfigurationFromCache();
+
+            if (issueTypeConfiguration is null || !issueTypeConfiguration.Any())
+            {
+                throw new Exception(message: "No existe ninguna configuración de IssueTypes");
+            }
+
             if (responsibleList is not null && responsibleList.Any())
             {
                 var defaultResposibleId = await _responsibleCacheRepository.GetDefaultValue();
@@ -63,7 +72,7 @@ namespace EIRA.Infrastructure.Repositories.Persistence
                             throw new Exception(message: $"No hay configuración para el proyecto con Clave '{issue?.Proyecto ?? string.Empty}'");
                         }
 
-                        var body = issue.ToIssueCreateRequest(responsibleList, defaultResponsible, requestTypeTarget);
+                        var body = issue.ToIssueCreateRequest(responsibleList, defaultResponsible, requestTypeTarget, issueTypeConfiguration);
                         var payload = body.ToDictionary(fieldsOnLoad); // Dynamic Payload
 
                         var comentarios = issue.Comentarios;
@@ -81,7 +90,6 @@ namespace EIRA.Infrastructure.Repositories.Persistence
                     }
                 }
             }
-
             return logsError;
         }
 
@@ -251,7 +259,7 @@ namespace EIRA.Infrastructure.Repositories.Persistence
             {
                 var starAt = pageNumber * maxResults;
                 var paginationString = $"&startAt={starAt}&maxResults={maxResults}";
-                string jqlStatement = $"project={projectId} AND status in ({statusIdsJql})";
+                string jqlStatement = $"project=\"{projectId}\" AND status in ({statusIdsJql})";
                 //string jqlStatement = $"project=SE AND \"Fecha Apertura[Date]\" >= \"{startDate:yyyy-MM-dd}\" AND \"Fecha Apertura[Date]\" <= \"{endDate:yyyy-MM-dd}\"";
                 string encodedJqlStatement = $"{HttpUtility.UrlEncode(jqlStatement)}{paginationString}";
                 var responseQuery = await _issuesService.GetIssuesByJQL<IssueWrapperResponse>(encodedJqlStatement);

@@ -125,6 +125,65 @@ namespace EIRA.Infrastructure.DbContexts.SqlServerContexts.EntitiesConfig
                     .HasConstraintName("FK_APP_CONFIGURATION_GLOBAL_REPORT_PROJECT_ID");
             });
 
+            modelBuilder.Entity<AppConfigurationIssueType>(entity =>
+            {
+                entity.HasKey(e => new { e.ProjectId, e.IssueTypeId });
+
+                entity.ToTable("APP_CONFIGURATION_ISSUE_TYPE", tb => tb.HasComment("Configuración de Issue Type por Proyecto"));
+
+                entity.Property(e => e.ProjectId)
+                    .HasMaxLength(128)
+                    .IsUnicode(false)
+                    .HasComment("Identificador Único del Proyecto")
+                    .HasColumnName("PROJECT_ID");
+                entity.Property(e => e.IssueTypeId)
+                    .HasComment("Identificador Único del Tipo de Incidente")
+                    .HasColumnName("ISSUE_TYPE_ID");
+                entity.Property(e => e.CreationAt)
+                    .HasDefaultValueSql("(getdate())")
+                    .HasComment("Fecha de Creación del Registro")
+                    .HasColumnType("datetime")
+                    .HasColumnName("CREATION_AT");
+                entity.Property(e => e.FieldValueName)
+                    .IsRequired()
+                    .HasMaxLength(128)
+                    .IsUnicode(false)
+                    .HasComment("Valor del campo del Tipo de Incidente")
+                    .HasColumnName("FIELD_VALUE_NAME");
+                entity.Property(e => e.IsActive)
+                    .IsRequired()
+                    .HasDefaultValueSql("((1))")
+                    .HasComment("¿Esta Activo? (1-True, 0-False)")
+                    .HasColumnName("IS_ACTIVE");
+                entity.Property(e => e.UpdateUser)
+                    .IsRequired()
+                    .HasMaxLength(128)
+                    .IsUnicode(false)
+                    .HasComment("Usuario que Realizó la Última Actualización del Registro")
+                    .HasColumnName("UPDATE_USER");
+                entity.Property(e => e.UpdatedAt)
+                    .HasDefaultValueSql("(getdate())")
+                    .HasComment("Fecha de la Última Actualización del Registro")
+                    .HasColumnType("datetime")
+                    .HasColumnName("UPDATED_AT");
+                entity.Property(e => e.UserAt)
+                    .IsRequired()
+                    .HasMaxLength(128)
+                    .IsUnicode(false)
+                    .HasComment("Usuario que Realizó la Creación del Registro")
+                    .HasColumnName("USER_AT");
+
+                entity.HasOne(d => d.IssueType).WithMany(p => p.AppConfigurationIssueType)
+                    .HasForeignKey(d => d.IssueTypeId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_APP_CONFIGURATION_ISSUE_TYPE_ISSUE_TYPE_ID");
+
+                entity.HasOne(d => d.Project).WithMany(p => p.AppConfigurationIssueType)
+                    .HasForeignKey(d => d.ProjectId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_APP_CONFIGURATION_ISSUE_TYPE_PROJECT_ID");
+            });
+
             modelBuilder.Entity<AppConfigurationLoadInformation>(entity =>
             {
                 entity.HasKey(e => new { e.ProjectId, e.FieldId });

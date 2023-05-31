@@ -1,4 +1,5 @@
-﻿using EIRA.Application.Extensions;
+﻿using EIRA.Application.DTOs;
+using EIRA.Application.Extensions;
 using EIRA.Application.Models.External.JiraV3;
 using EIRA.Application.Models.External.JiraV3.TypeOfPropertiesClasses;
 using EIRA.Application.Models.Files.Incoming;
@@ -10,7 +11,7 @@ namespace EIRA.Application.Mappings.Transforms
 {
     public static class IssuesIncomingFileTransform
     {
-        public static IssueCreateRequest ToIssueCreateRequest(this IssuesIncomingFile source, List<KeyValueList> responsibleList, KeyValueList defaultResponsible, RequestTypeTarget requestTypeTarget)
+        public static IssueCreateRequest ToIssueCreateRequest(this IssuesIncomingFile source, List<KeyValueList> responsibleList, KeyValueList defaultResponsible, RequestTypeTarget requestTypeTarget, List<IssueTypeConfigurationDTO> issueTypeConfiguration)
         {
             var output = new IssueCreateRequest
             {
@@ -19,9 +20,9 @@ namespace EIRA.Application.Mappings.Transforms
                     Key = source.Proyecto
                 },
                 Summary = source.Resumen.GetStringOrFallback("Sin Resumen"),
-                Issuetype = new IdentifiableProp
+                Issuetype = new NameableProp
                 {
-                    Id = GetIssueTypeId(requestTypeTarget, source.Proyecto.ToUpper())
+                    Name = GetIssueTypeName(source.Proyecto, requestTypeTarget, issueTypeConfiguration)
                 },
                 Assignee = new IdentifiableProp
                 {
@@ -187,6 +188,20 @@ namespace EIRA.Application.Mappings.Transforms
             }
 
             return output;
+        }
+
+        private static string GetIssueTypeName(string projectKey, RequestTypeTarget requestTypeTarget, List<IssueTypeConfigurationDTO> issueTypeConfiguration)
+        {
+            switch (requestTypeTarget)
+            {
+                case RequestTypeTarget.Desarollo:
+                    var configDesarollo = issueTypeConfiguration?.FirstOrDefault(x => x.ProjectId == projectKey && x.IssueTypeId == 2)?.FieldValueName ?? string.Empty;
+                    return configDesarollo;
+                case RequestTypeTarget.Soporte:
+                    var configSoporte = issueTypeConfiguration?.FirstOrDefault(x => x.ProjectId == projectKey && x.IssueTypeId == 1)?.FieldValueName ?? string.Empty;
+                    return configSoporte;
+                default: return string.Empty;
+            }
         }
 
         public static Dictionary<string, object> ToDictionary(this IssueCreateRequest source, List<string> fieldsOnLoad)

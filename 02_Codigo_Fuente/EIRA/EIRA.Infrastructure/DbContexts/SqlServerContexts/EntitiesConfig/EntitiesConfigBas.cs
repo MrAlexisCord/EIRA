@@ -64,6 +64,50 @@ namespace EIRA.Infrastructure.DbContexts.SqlServerContexts.EntitiesConfig
                     .HasColumnName("USER_AT");
             });
 
+            modelBuilder.Entity<BasIssueType>(entity =>
+            {
+                entity.HasKey(e => e.IssueTypeId);
+
+                entity.ToTable("BAS_ISSUE_TYPE", tb => tb.HasComment("Configuración de los Proyectos"));
+
+                entity.Property(e => e.IssueTypeId)
+                    .HasComment("Identificador Único del Tipo de Incidente")
+                    .HasColumnName("ISSUE_TYPE_ID");
+                entity.Property(e => e.CreationAt)
+                    .HasDefaultValueSql("(getdate())")
+                    .HasComment("Fecha de Creación del Registro")
+                    .HasColumnType("datetime")
+                    .HasColumnName("CREATION_AT");
+                entity.Property(e => e.IsActive)
+                    .IsRequired()
+                    .HasDefaultValueSql("((1))")
+                    .HasComment("¿Esta Activo? (1-True, 0-False)")
+                    .HasColumnName("IS_ACTIVE");
+                entity.Property(e => e.IssueTypeName)
+                    .IsRequired()
+                    .HasMaxLength(128)
+                    .IsUnicode(false)
+                    .HasComment("Nombre o descripción del Tipo de Incidente")
+                    .HasColumnName("ISSUE_TYPE_NAME");
+                entity.Property(e => e.UpdateUser)
+                    .IsRequired()
+                    .HasMaxLength(128)
+                    .IsUnicode(false)
+                    .HasComment("Usuario que Realizó la Última Actualización del Registro")
+                    .HasColumnName("UPDATE_USER");
+                entity.Property(e => e.UpdatedAt)
+                    .HasDefaultValueSql("(getdate())")
+                    .HasComment("Fecha de la Última Actualización del Registro")
+                    .HasColumnType("datetime")
+                    .HasColumnName("UPDATED_AT");
+                entity.Property(e => e.UserAt)
+                    .IsRequired()
+                    .HasMaxLength(128)
+                    .IsUnicode(false)
+                    .HasComment("Usuario que Realizó la Creación del Registro")
+                    .HasColumnName("USER_AT");
+            });
+
             modelBuilder.Entity<BasProject>(entity =>
             {
                 entity.HasKey(e => e.ProjectId);
