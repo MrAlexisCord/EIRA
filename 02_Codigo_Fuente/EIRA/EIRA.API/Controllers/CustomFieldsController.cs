@@ -1,7 +1,7 @@
 ﻿using EIRA.API.Controllers.Common;
 using EIRA.Application.Contracts.Auth.CacheRepository;
 using EIRA.Application.Features.CustomFields.Queries.GetAllowedCustomFields;
-using EIRA.Application.Features.CustomFields.Queries.GetFieldsByProjectKey;
+using EIRA.Application.Features.CustomFields.Queries.GetFieldsOnLoadConfigurationByProjectKey;
 using EIRA.Application.Models.External;
 using Microsoft.AspNetCore.Mvc;
 
@@ -38,7 +38,7 @@ namespace EIRA.API.Controllers
                 JiraApiKey = "ATATT3xFfGF0A48NnkRMeLReao06WQBy93psM6hYoHvlaQomCCGZQKg9EQnw9N2aYVAm_B7OiIlZjPnhTn8IQuOsL9G7-lniBeCnGozMcQn4VinAF_rJmAz0v_tgjPgIIZba7EvH8Xo9zmSSHBaDQ3_KJqnTTmIa4fmGgTRcmZKnAxQ9r3vckEk=20FB03B8"
             });
 
-            var response = await Mediator.Send(new GetFieldsByProjectKeyQuery { ProjectKey = projectKey });
+            var response = await Mediator.Send(new GetFieldsOnLoadConfigurationByProjectKeyQuery { ProjectKey = projectKey });
             return Ok(response);
         }
     }

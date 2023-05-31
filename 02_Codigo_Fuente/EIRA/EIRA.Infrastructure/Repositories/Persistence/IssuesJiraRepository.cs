@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using EIRA.Application.Contracts.Persistence;
 using EIRA.Application.Contracts.Persistence.CacheRepository;
+using EIRA.Application.Contracts.Persistence.Eira;
 using EIRA.Application.Exceptions;
 using EIRA.Application.Mappings.Transforms;
 using EIRA.Application.Models.External.JiraV3;
@@ -19,13 +20,15 @@ namespace EIRA.Infrastructure.Repositories.Persistence
     {
         private readonly IIssuesService _issuesService;
         private readonly IResponsibleCacheRepository _responsibleCacheRepository;
+        private readonly ICustomFieldsCacheRepository _customFieldsCacheRepository;
         private readonly IMapper _mapper;
 
-        public IssuesJiraRepository(IIssuesService issuesService, IResponsibleCacheRepository responsibleCacheRepository, IMapper mapper)
+        public IssuesJiraRepository(IIssuesService issuesService, IResponsibleCacheRepository responsibleCacheRepository, IMapper mapper, ICustomFieldsCacheRepository customFieldsCacheRepository)
         {
             _issuesService = issuesService;
             _responsibleCacheRepository = responsibleCacheRepository;
             _mapper = mapper;
+            _customFieldsCacheRepository = customFieldsCacheRepository;
         }
 
         public async Task<List<JiraUploadIssueErrorLog>> PostIssuesAsync(List<IssuesIncomingFile> source, RequestTypeTarget requestTypeTarget)
@@ -40,18 +43,41 @@ namespace EIRA.Infrastructure.Repositories.Persistence
 
                 foreach (var issue in source)
                 {
-                    var body = issue.ToIssueCreateRequest(responsibleList, defaultResponsible, requestTypeTarget);
-                    var comentarios = issue.Comentarios;
-                    var issuesInJiraByAranda = await this.GetIssueByArandaAsync(body.NumeroAranda, body.Project.Key);
 
-                    if (issuesInJiraByAranda is not null && issuesInJiraByAranda.Any())
+                    if (string.IsNullOrEmpty(issue?.Proyecto?.Trim()))
                     {
-                        var updateBody = _mapper.Map<IssueUpdateRequest>(body);
-                        await UpdateProcess(updateBody, issuesInJiraByAranda, logsError, comentarios);
+                        logsError.Add(new JiraUploadIssueErrorLog
+                        {
+                            Proyecto = string.Empty,
+                            ErrorMessage = "El campo Proyecto es obligatorio en todas las filas del archivo",
+                            NumeroAranda = issue.NumeroCaso,
+                            IssueKeyOrId = string.Empty,
+                            Operation = CrudOperations.UPLOAD,
+                        });
                     }
                     else
                     {
-                        await CreateProcess(body, logsError, comentarios);
+                        var fieldsOnLoad = await _customFieldsCacheRepository.GetFieldsOnLoadConfigurationByProjectKeyFromCache(issue.Proyecto);
+                        if (fieldsOnLoad is null || !fieldsOnLoad.Any())
+                        {
+                            throw new Exception(message: $"No hay configuración para el proyecto con Clave '{issue?.Proyecto ?? string.Empty}'");
+                        }
+
+                        var body = issue.ToIssueCreateRequest(responsibleList, defaultResponsible, requestTypeTarget);
+                        var payload = body.ToDictionary(fieldsOnLoad); // Dynamic Payload
+
+                        var comentarios = issue.Comentarios;
+                        var issuesInJiraByAranda = await this.GetIssueByArandaAsync(issue.NumeroCaso, issue.Proyecto);
+
+                        if (issuesInJiraByAranda is not null && issuesInJiraByAranda.Any())
+                        {
+                            var updateBody = _mapper.Map<IssueUpdateRequest>(body);
+                            await UpdateProcess(updateBody, payload, issuesInJiraByAranda, logsError, comentarios);
+                        }
+                        else
+                        {
+                            await CreateProcess(body, payload, logsError, comentarios);
+                        }
                     }
                 }
             }
@@ -68,24 +94,12 @@ namespace EIRA.Infrastructure.Repositories.Persistence
             return response.Issues;
         }
 
-        private async Task CreateProcess(IssueCreateRequest body, List<JiraUploadIssueErrorLog> logsError, string comentarios = null)
+        private async Task CreateProcess(IssueCreateRequest body, Dictionary<string, object> payload, List<JiraUploadIssueErrorLog> logsError, string comentarios = null)
         {
             try
             {
-                switch (body.Project.Key)
-                {
-                    case "AS":
-                        var asBody = _mapper.Map<IssueCreateAIRERequestBody>(body);
-                        var responseAs = await _issuesService.Create<IssueCreatedResponse, IssueCreateAIRERequestBody>(new BaseFieldsPostBodyRequest<IssueCreateAIRERequestBody> { Fields = asBody }, "");
-                        await SetComments(responseAs.Key, comentarios);
-                        break;
-                    case "SE":
-                        body.FieldCreateValidation(logsError);
-                        var enlaceBody = _mapper.Map<IssueCreateEnlaceRequestBody>(body);
-                        var enlaceResponse = await _issuesService.Create<IssueCreatedResponse, IssueCreateEnlaceRequestBody>(new BaseFieldsPostBodyRequest<IssueCreateEnlaceRequestBody> { Fields = enlaceBody }, "");
-                        await SetComments(enlaceResponse.Key, comentarios);
-                        break;
-                }
+                var responseAs = await _issuesService.Create<IssueCreatedResponse, object>(new BaseFieldsPostBodyRequest<object> { Fields = payload }, "");
+                await SetComments(responseAs.Key, comentarios);
             }
             catch (ExternalApiException ex)
             {
@@ -114,7 +128,8 @@ namespace EIRA.Infrastructure.Repositories.Persistence
             }
         }
 
-        private async Task UpdateProcess(IssueUpdateRequest body, List<MinimalIssue> issuesInJiraByAranda, List<JiraUploadIssueErrorLog> logsError, string comentarios = null)
+
+        private async Task UpdateProcess(IssueUpdateRequest body, Dictionary<string, object> payload, List<MinimalIssue> issuesInJiraByAranda, List<JiraUploadIssueErrorLog> logsError, string comentarios = null)
         {
 
             if (issuesInJiraByAranda.Count > 1)
@@ -133,22 +148,7 @@ namespace EIRA.Infrastructure.Repositories.Persistence
                 try
                 {
                     var issueToModify = issuesInJiraByAranda[0];
-                    switch (body.Project.Key)
-                    {
-                        case "AS":
-                            var asBody = _mapper.Map<IssueUpdateAIRERequestBody>(body);
-                            var responseAs = await _issuesService.Update<IssueUpdatedResponse, IssueUpdateAIRERequestBody>(issueToModify.Key, new BaseFieldsPostBodyRequest<IssueUpdateAIRERequestBody> { Fields = asBody }, "");
-                            await SetComments(issueToModify.Key, comentarios);
-                            break;
-                        case "SE":
-                            var errorsCount = body.FieldUpdateValidation(logsError);
-                            var enlaceBody = _mapper.Map<IssueUpdateEnlaceRequestBody>(body);
-                            var enlaceResponse = await _issuesService.Update<IssueUpdatedResponse, IssueUpdateEnlaceRequestBody>(issueToModify.Key, new BaseFieldsPostBodyRequest<IssueUpdateEnlaceRequestBody> { Fields = enlaceBody }, "");
-                            await SetComments(issueToModify.Key, comentarios);
-                            break;
-                    }
-
-                    //var response = await _issuesService.Update<object>(issueToModify.Key, new BaseFieldsPostBodyRequest<IssueUpdateRequest> { Fields = body }, "");
+                    var responseAs = await _issuesService.Update<IssueUpdatedResponse, object>(issueToModify.Key, new BaseFieldsPostBodyRequest<object> { Fields = payload }, "");
                     //await SetComments(issueToModify.Key, comentarios);
                 }
                 catch (ExternalApiException ex)
@@ -206,7 +206,6 @@ namespace EIRA.Infrastructure.Repositories.Persistence
             }
             catch (Exception)
             {
-
                 return false;
             }
         }

@@ -26,16 +26,11 @@ namespace EIRA.Application.Features.Issues.Commands.UploadIssues
             List<JiraUploadIssueErrorLog> logRespose;
 
             var requestTypeTarget = GetRequestTypeByFileName(request.FileName);
-
             var headers = PropertyExtension.GetReportHeadersDictionary<IssuesIncomingFile>();
             var response = _excelService.ReadExcel<IssuesIncomingFile>(request.FileStream, headers);
 
             var validIssuesList = response
-                ?.Where(x =>
-            (!string.IsNullOrEmpty(x.NumeroCaso) && !string.IsNullOrEmpty(x.NumeroCaso.Trim()))
-            //&& x.Grupo.ToUpper().Contains("OLSOFT")
-            )
-                ;
+                ?.Where(x => !string.IsNullOrEmpty(x.NumeroCaso) && !string.IsNullOrEmpty(x.NumeroCaso.Trim()));
 
             if (validIssuesList is not null && validIssuesList.Any())
             {

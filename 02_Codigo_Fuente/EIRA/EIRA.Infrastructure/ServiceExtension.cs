@@ -21,7 +21,6 @@ using EIRA.Infrastructure.Services.API.JIraAPIV3;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.Tokens;
 
 namespace EIRA.Infrastructure
 {
@@ -70,6 +69,10 @@ namespace EIRA.Infrastructure
             services.AddScoped<IResponsibleJiraRepository, ResponsibleJiraRepository>();
             services.AddScoped<IStatusesRepository, StatusesRepository>();
             services.AddScoped<IProjectsRepository, ProjectsRepository>();
+
+            // Services and repositories from EIRA
+            services.AddScoped<ICustomFieldsRepository, CustomFieldsRepository>();
+            services.AddScoped<ICustomFieldsCacheRepository, CustomFieldCacheRepository>();
         }
     }
 }

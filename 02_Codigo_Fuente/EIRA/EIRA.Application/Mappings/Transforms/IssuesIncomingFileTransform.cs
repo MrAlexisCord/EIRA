@@ -1,4 +1,5 @@
-﻿using EIRA.Application.Models.External.JiraV3;
+﻿using EIRA.Application.Extensions;
+using EIRA.Application.Models.External.JiraV3;
 using EIRA.Application.Models.External.JiraV3.TypeOfPropertiesClasses;
 using EIRA.Application.Models.Files.Incoming;
 using EIRA.Application.Statics.Enumerations;
@@ -185,8 +186,23 @@ namespace EIRA.Application.Mappings.Transforms
                 output.FechaCierre = source.FechaCierre;
             }
 
-
             return output;
+        }
+
+        public static Dictionary<string, object> ToDictionary(this IssueCreateRequest source, List<string> fieldsOnLoad)
+        {
+            var dictionary = new Dictionary<string, object>();
+
+            foreach (var jsonPropertyName in fieldsOnLoad)
+            {
+                var objectValue = source.GetPropertyInfoByJsonPropertyName(jsonPropertyName);
+                if (objectValue != null && objectValue != DBNull.Value)
+                {
+                    dictionary.Add(jsonPropertyName, objectValue);
+                }
+            }
+
+            return dictionary;
         }
 
         private static CaseTypeIssueEnum GetCaseType(RequestTypeTarget requestTypeTarget)
