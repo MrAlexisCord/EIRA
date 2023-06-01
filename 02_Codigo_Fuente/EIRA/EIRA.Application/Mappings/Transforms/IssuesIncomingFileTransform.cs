@@ -19,7 +19,7 @@ namespace EIRA.Application.Mappings.Transforms
                 {
                     Key = source.Proyecto
                 },
-                Summary = source.Resumen.GetStringOrFallback("Sin Resumen"),
+                Summary = source.Resumen.GetStringOrFallback("Sin Resumen").Replace("\n", " ").Replace("\r", " "),
                 Issuetype = new NameableProp
                 {
                     Name = GetIssueTypeName(source.Proyecto, requestTypeTarget, issueTypeConfiguration)
@@ -185,6 +185,18 @@ namespace EIRA.Application.Mappings.Transforms
             if (source.FechaCierre.HasValue && source.FechaCierre.Value.Year >= ExcelLimits.MinYear)
             {
                 output.FechaCierre = source.FechaCierre;
+            }
+
+            // Triplea_SUI
+            if (!string.IsNullOrEmpty(source.ResponsablesMultiplesTripleaSUI) && !string.IsNullOrEmpty(source.ResponsablesMultiplesTripleaSUI.Trim()))
+            {
+                output.ResponsablesMultiplesTripleaSUI = source?.ResponsablesMultiplesTripleaSUI?.Split(";").Select(x => new ValuableProp { Value = x?.Trim() })?.ToList();
+            }
+
+            // Triplea_CARTAS
+            if (!string.IsNullOrEmpty(source.ResponsablesMultiplesTripleaCARTAS) && !string.IsNullOrEmpty(source.ResponsablesMultiplesTripleaCARTAS.Trim()))
+            {
+                output.ResponsablesMultiplesTripleaCartas = source?.ResponsablesMultiplesTripleaCARTAS?.Split(";").Select(x => new ValuableProp { Value = x?.Trim() })?.ToList();
             }
 
             return output;

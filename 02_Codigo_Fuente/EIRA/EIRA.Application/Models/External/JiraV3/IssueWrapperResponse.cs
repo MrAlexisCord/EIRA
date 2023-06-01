@@ -41,8 +41,33 @@ namespace EIRA.Application.Models.External.JiraV3
 
     public partial class Fields
     {
-        //[JsonProperty("project")]
-        //public ProjectModel Project { get; set; }
+        /* NUEVOS */
+        [JsonProperty("summary")]
+        public string Summary { get; set; }
+        [JsonProperty("issuetype")]
+        public NameableProp Issuetype { get; set; }
+        [JsonProperty("customfield_10067")]
+        public ValuableProp Frente { get; set; }
+        [JsonProperty("customfield_10094")]
+        public DateTime? FechaEntregaConstruccion { get; set; }
+        // AIR-E
+        [JsonProperty("customfield_10107")]
+        public List<ValuableProp> Reporte { get; set; }
+        [JsonProperty("customfield_10110")]
+        public List<ValuableProp> ResponsablesMultiples { get; set; }
+
+        [JsonProperty("customfield_10111")]
+        public List<ValuableProp> ResponsablesMultiplesTripleaSUI { get; set; }
+
+        [JsonProperty("customfield_10112")]
+        public List<ValuableProp> ResponsablesMultiplesTripleaCartas { get; set; }
+
+        [JsonProperty("customfield_10109")]
+        public DateTime? FechaSolucion { get; set; }
+
+
+        [JsonProperty("project")]
+        public ProjectModel Project { get; set; }
         [JsonProperty("customfield_10084")]
         public string NumeroCaso { get; set; }
         [JsonProperty("customfield_10065")]
@@ -66,8 +91,8 @@ namespace EIRA.Application.Models.External.JiraV3
         public DateTime? FechaEntregaAnalisisN1 { get; set; }
         [JsonProperty("customfield_10097")]
         public DateTime? FechaEntregaPropuestaSolucion { get; set; }
-        [JsonProperty("customfield_10074")]
-        public DateTime? FechaEntregaConstruccion { get; set; }
+        //[JsonProperty("customfield_10074")]
+        //public DateTime? FechaEntregaConstruccion { get; set; }
         [JsonProperty("customfield_10101")]
         public DateTime? FechaCierre { get; set; }
 
@@ -90,8 +115,8 @@ namespace EIRA.Application.Models.External.JiraV3
         public decimal? TiempoEstimadoSoportePruebas { get; set; }
 
 
-        //[JsonProperty("customfield_10093")]
-        //public DateTime? FechaEstimadaAnalisisN1 { get; set; }
+        [JsonProperty("customfield_10093")]
+        public DateTime? FechaEstimadaAnalisisN1 { get; set; }
 
 
         [JsonProperty("customfield_10095")]

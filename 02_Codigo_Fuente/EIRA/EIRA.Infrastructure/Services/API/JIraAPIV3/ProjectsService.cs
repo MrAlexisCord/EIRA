@@ -17,7 +17,8 @@ namespace EIRA.Infrastructure.Services.API.JIraAPIV3
             return await this.SendAsync<T>(new ApiRequest
             {
                 ApiType = ApiType.GET,
-                Url = $"{ExternalEndpoint.JiraAPIBaseV3}/project/recent",
+                //Url = $"{ExternalEndpoint.JiraAPIBaseV3}/project/recent",
+                Url = $"{ExternalEndpoint.JiraAPIBaseV3}/project/search",
             });
         }
 

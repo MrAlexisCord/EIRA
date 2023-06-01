@@ -290,6 +290,7 @@ namespace EIRA.Infrastructure.Repositories.Persistence
                 var issueWithComments = IssueWrapperResponseTransform.FromIssueToIssueConComentariosReport(issue, issueCommentsFormatted);
                 response.Add(issueWithComments);
             }
+
             return response?.OrderBy(x => x.Prioridad)?.ThenBy(x => x.ResponsableCliente)?.ToList();
 
         }

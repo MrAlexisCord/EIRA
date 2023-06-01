@@ -11,13 +11,74 @@ namespace EIRA.Infrastructure.Repositories.Eira
     {
         private readonly IAsyncRepository<BasField> _repository;
         private readonly IAsyncRepository<AppConfigurationLoadInformation> _repositoryLoadConfiguration;
+        private readonly IAsyncRepository<AppConfigurationFollowUpReport> _repositoryFollowUpConfiguration;
+        private readonly IAsyncRepository<AppConfigurationGlobalReport> _repositoryGlobalConfiguration;
         private readonly IMapper _mapper;
 
-        public CustomFieldsRepository(IAsyncRepository<BasField> repository, IMapper mapper, IAsyncRepository<AppConfigurationLoadInformation> repositoryLoadConfiguration)
+        public CustomFieldsRepository(IAsyncRepository<BasField> repository, IMapper mapper, IAsyncRepository<AppConfigurationLoadInformation> repositoryLoadConfiguration, IAsyncRepository<AppConfigurationFollowUpReport> repositoryFollowUpConfiguration, IAsyncRepository<AppConfigurationGlobalReport> repositoryGlobalConfiguration)
         {
             _repository = repository;
             _mapper = mapper;
             _repositoryLoadConfiguration = repositoryLoadConfiguration;
+            _repositoryFollowUpConfiguration = repositoryFollowUpConfiguration;
+            _repositoryGlobalConfiguration = repositoryGlobalConfiguration;
+        }
+
+        public async Task<ConfigurationFieldDTO> CreateFieldFollowConfiguration(ConfigurationFieldDTO configuration)
+        {
+            var payload = _mapper.Map<AppConfigurationFollowUpReport>(configuration);
+            var response = await _repositoryFollowUpConfiguration.AddAsync(payload);
+            return _mapper.Map<ConfigurationFieldDTO>(response);
+        }
+
+        public async Task<ConfigurationFieldDTO> CreateFieldGlobalConfiguration(ConfigurationFieldDTO configuration)
+        {
+            var payload = _mapper.Map<AppConfigurationGlobalReport>(configuration);
+            var response = await _repositoryGlobalConfiguration.AddAsync(payload);
+            return _mapper.Map<ConfigurationFieldDTO>(response);
+        }
+
+        public async Task<ConfigurationFieldDTO> CreateFieldOnLoadConfiguration(ConfigurationFieldDTO configuration)
+        {
+            var payload = _mapper.Map<AppConfigurationLoadInformation>(configuration);
+            var response = await _repositoryLoadConfiguration.AddAsync(payload);
+            return _mapper.Map<ConfigurationFieldDTO>(response);
+        }
+
+        public async Task<bool> DeleteFieldFollowConfiguration(ConfigurationFieldDTO configuration)
+        {
+            var record = (await _repositoryFollowUpConfiguration.ListNotTrackingAsync(new FollowUpCustomFieldsByProjectSpecification(configuration.ProjectId, configuration.FieldId)))?.FirstOrDefault();
+            if (record is null)
+            {
+                throw new KeyNotFoundException(message: "El campo que desea quitar no existe");
+            }
+
+            await _repositoryFollowUpConfiguration.DeleteAsync(record);
+            return true;
+        }
+
+        public async Task<bool> DeleteFieldGlobalConfiguration(ConfigurationFieldDTO configuration)
+        {
+            var record = (await _repositoryGlobalConfiguration.ListNotTrackingAsync(new GlobalCustomFieldsByProjectSpecification(configuration.ProjectId, configuration.FieldId)))?.FirstOrDefault();
+            if (record is null)
+            {
+                throw new KeyNotFoundException(message: "El campo que desea quitar no existe");
+            }
+
+            await _repositoryGlobalConfiguration.DeleteAsync(record);
+            return true;
+        }
+
+        public async Task<bool> DeleteFieldOnLoadConfiguration(ConfigurationFieldDTO configuration)
+        {
+            var record = (await _repositoryLoadConfiguration.ListNotTrackingAsync(new CustomFieldsByProjectKeySpecification(configuration.ProjectId, configuration.FieldId)))?.FirstOrDefault();
+            if (record is null)
+            {
+                throw new KeyNotFoundException(message: "El campo que desea quitar no existe");
+            }
+
+            await _repositoryLoadConfiguration.DeleteAsync(record);
+            return true;
         }
 
         public async Task<List<CustomFieldDto>> GetAllowedFields()
@@ -27,14 +88,18 @@ namespace EIRA.Infrastructure.Repositories.Eira
             return dtoResult;
         }
 
-        public Task<List<string>> GetFieldsOnFollowUpReportByProjectKey(string projectKey)
+        public async Task<List<string>> GetFieldsOnFollowUpReportByProjectKey(string projectKey)
         {
-            throw new NotImplementedException();
+            var result = await _repositoryFollowUpConfiguration.ListAsync(new FollowUpCustomFieldsByProjectSpecification(projectKey: projectKey));
+            var fieldsIds = result?.Select(x => x.FieldId)?.ToList();
+            return fieldsIds;
         }
 
-        public Task<List<string>> GetFieldsOnGlobalReportByProjectKey(string projectKey)
+        public async Task<List<string>> GetFieldsOnGlobalReportByProjectKey(string projectKey)
         {
-            throw new NotImplementedException();
+            var result = await _repositoryGlobalConfiguration.ListAsync(new GlobalCustomFieldsByProjectSpecification(projectKey: projectKey));
+            var fieldsIds = result?.Select(x => x.FieldId)?.ToList();
+            return fieldsIds;
         }
 
         public async Task<List<string>> GetFieldsOnLoadConfigurationByProjectKey(string projectKey)

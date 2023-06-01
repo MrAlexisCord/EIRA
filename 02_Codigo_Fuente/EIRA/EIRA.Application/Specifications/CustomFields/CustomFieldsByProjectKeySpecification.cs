@@ -6,7 +6,15 @@ namespace EIRA.Application.Specifications.CustomFields
     {
         public CustomFieldsByProjectKeySpecification(string projectKey) : base(f => f.ProjectId.ToUpper() == projectKey.ToUpper())
         {
+            ApplyOrderBy(x => x.OrderNumber);
+        }
 
+        public CustomFieldsByProjectKeySpecification(string projectKey, string fieldId) : base(f =>
+        f.ProjectId.ToUpper() == projectKey.ToUpper()
+        && f.FieldId.ToUpper() == fieldId.ToUpper() 
+        )
+        {
+            ApplyOrderBy(x => x.OrderNumber);
         }
     }
 }

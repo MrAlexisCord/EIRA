@@ -92,11 +92,21 @@ namespace EIRA.Application.Models.Files.Incoming
         [ReportHeader("Responsable AIR-E")]
         public string ResponsablesMultiples { get; set; }
 
+
         [ReportHeader("Fecha Solución")]
         public DateTime? FechaSolucion { get; set; }
 
         [ReportHeader("Fecha Cierre")]
         public DateTime? FechaCierre { get; set; }
+        
+        
+        // Triplea SUI
+        [ReportHeader("Responsable TRIPLEA_SUI")]
+        public string ResponsablesMultiplesTripleaSUI { get; set; }
+
+        // Triplea CARTAS
+        [ReportHeader("Responsable TRIPLEA_CARTAS")]
+        public string ResponsablesMultiplesTripleaCARTAS { get; set; }
 
     }
 }

@@ -113,7 +113,7 @@ public partial class EiraContext : DbContext
 
     private void UpdateSoftDeleteStatuses()
     {
-        var userName = "alexis";
+        var userName = "EIRA";
         foreach (var entry in ChangeTracker.Entries())
         {
             switch (entry.State)

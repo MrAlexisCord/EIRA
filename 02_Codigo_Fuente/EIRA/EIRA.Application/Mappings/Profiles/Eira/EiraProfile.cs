@@ -11,6 +11,9 @@ namespace EIRA.Application.Mappings.Profiles.Eira
         {
             CreateMap<BasField, CustomFieldDto>().ReverseMap();
             CreateMap<AppConfigurationIssueType, IssueTypeConfigurationDTO>().ReverseMap();
+            CreateMap<AppConfigurationFollowUpReport, ConfigurationFieldDTO>().ReverseMap();
+            CreateMap<AppConfigurationGlobalReport, ConfigurationFieldDTO>().ReverseMap();
+            CreateMap<AppConfigurationLoadInformation, ConfigurationFieldDTO>().ReverseMap();
         }
     }
 }

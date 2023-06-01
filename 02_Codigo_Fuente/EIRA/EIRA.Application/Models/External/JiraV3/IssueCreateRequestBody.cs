@@ -103,6 +103,10 @@ namespace EIRA.Application.Models.External.JiraV3
         public List<ValuableProp> Reporte { get; set; }
         [JsonProperty("customfield_10110")]
         public List<ValuableProp> ResponsablesMultiples { get; set; }
+        [JsonProperty("customfield_10111")]
+        public List<ValuableProp> ResponsablesMultiplesTripleaSUI { get; set; }
+        [JsonProperty("customfield_10112")]
+        public List<ValuableProp> ResponsablesMultiplesTripleaCartas { get; set; }
         [JsonProperty("customfield_10109")]
         public DateTime? FechaSolucion { get; set; }
         [JsonProperty("customfield_10101")]

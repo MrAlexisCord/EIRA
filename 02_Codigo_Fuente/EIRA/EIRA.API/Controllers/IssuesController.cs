@@ -1,9 +1,13 @@
-﻿using EIRA.API.Controllers.Common;
+﻿using DocumentFormat.OpenXml.Bibliography;
+using EIRA.API.Controllers.Common;
 using EIRA.Application.Contracts.Auth.CacheRepository;
 using EIRA.Application.Exceptions;
 using EIRA.Application.Extensions;
+using EIRA.Application.Features.CustomFields.Queries.GetFieldsFollowUpConfigurationByProjectKey;
+using EIRA.Application.Features.CustomFields.Queries.GetFieldsGlobalConfigurationByProjectKey;
 using EIRA.Application.Features.Issues.Commands.UploadIssues;
 using EIRA.Application.Features.Issues.Queries.GetReporteComentarios;
+using EIRA.Application.Features.Projects.Queries.GetAllProjects;
 using EIRA.Application.Models.External;
 using EIRA.Application.Models.Files.Outgoing;
 using EIRA.Application.Models.LogModels;
@@ -32,8 +36,8 @@ namespace EIRA.API.Controllers
 
             await _cacheRepository.GetUserInfoInCache(new AuthLoginRequestBody
             {
-                UserName = "cesar.figueroa@olsoftware.com",
-                JiraApiKey = "ATATT3xFfGF0A48NnkRMeLReao06WQBy93psM6hYoHvlaQomCCGZQKg9EQnw9N2aYVAm_B7OiIlZjPnhTn8IQuOsL9G7-lniBeCnGozMcQn4VinAF_rJmAz0v_tgjPgIIZba7EvH8Xo9zmSSHBaDQ3_KJqnTTmIa4fmGgTRcmZKnAxQ9r3vckEk=20FB03B8"
+                UserName = "anay.valencia@olsoftware.com",
+                JiraApiKey = "ATATT3xFfGF0YyowoeYenZ1DrzbJGBd5GTYbIgW01yHxTVyegauaSIttYPYj0UxYTnRYzYurXhenMz3CKSHTnMC2Zi1Gyh5Wn1QehRdD1n-DY0z8FkvNb5XEE5DJ3-mb9pbBzds-K7l6pd130ZWWtpj-X-agOSrFyg_lGCtDvGMkiBuGaSCrRZE=C77843FE"
             });
 
             using MemoryStream stream = new();
@@ -48,7 +52,7 @@ namespace EIRA.API.Controllers
                 var fileName = $"log_errores-{DateTime.UtcNow.ExportableDateTimeFormat()}.xlsx";
                 var propNames = new string[]
             {
-                //nameof(IssueConComentariosReport.IssueKeyOrId),
+                nameof(JiraUploadIssueErrorLog.Proyecto),
                 nameof(JiraUploadIssueErrorLog.NumeroAranda),
                 nameof(JiraUploadIssueErrorLog.IssueKeyOrId),
                 nameof(JiraUploadIssueErrorLog.ErrorMessage),
@@ -66,32 +70,19 @@ namespace EIRA.API.Controllers
         {
             await _cacheRepository.GetUserInfoInCache(new AuthLoginRequestBody
             {
-                UserName = "cesar.figueroa@olsoftware.com",
-                JiraApiKey = "ATATT3xFfGF0A48NnkRMeLReao06WQBy93psM6hYoHvlaQomCCGZQKg9EQnw9N2aYVAm_B7OiIlZjPnhTn8IQuOsL9G7-lniBeCnGozMcQn4VinAF_rJmAz0v_tgjPgIIZba7EvH8Xo9zmSSHBaDQ3_KJqnTTmIa4fmGgTRcmZKnAxQ9r3vckEk=20FB03B8"
+                UserName = "anay.valencia@olsoftware.com",
+                JiraApiKey = "ATATT3xFfGF0YyowoeYenZ1DrzbJGBd5GTYbIgW01yHxTVyegauaSIttYPYj0UxYTnRYzYurXhenMz3CKSHTnMC2Zi1Gyh5Wn1QehRdD1n-DY0z8FkvNb5XEE5DJ3-mb9pbBzds-K7l6pd130ZWWtpj-X-agOSrFyg_lGCtDvGMkiBuGaSCrRZE=C77843FE"
             });
 
             var response = await Mediator.Send(request);
+            var projectList = await Mediator.Send(new GetAllProjectsQuery());
+            var projectSelected = projectList.Data.FirstOrDefault(x => x.Id == long.Parse(request.ProjectId ?? "0"));
+            var responseHeadersInfo = await Mediator.Send(new GetFieldsFollowUpConfigurationByProjectKeyQuery { ProjectKey = projectSelected.Key });
+            var propNames = responseHeadersInfo?.Data?.Select(x => x.FieldId)?.ToList()?.GetHeadersByFieldNames<IssueConComentariosReport>()?.ToArray();
+
             var fileName = $"reporte-seguimiento-{DateTime.Now.ExportableDateTimeFormat()}.xlsx";
-            var propNames = new string[]
-            {
-                //nameof(IssueConComentariosReport.IssueKeyOrId),
-                //nameof(IssueConComentariosReport.Project),
-                nameof(IssueConComentariosReport.NumeroCaso),
-                nameof(IssueConComentariosReport.ResponsableCliente),
-                //nameof(IssueConComentariosReport.Tarea),
-                nameof(IssueConComentariosReport.Complejidad),
-                nameof(IssueConComentariosReport.Prioridad),
-                nameof(IssueConComentariosReport.Estado),
-                nameof(IssueConComentariosReport.DescripcionCorta),
-                nameof(IssueConComentariosReport.Compania),
-                nameof(IssueConComentariosReport.Desarrollador),
-                nameof(IssueConComentariosReport.Observaciones),
-                nameof(IssueConComentariosReport.FechaEntregaAnalisisN1),
-                nameof(IssueConComentariosReport.FechaEntregaPropuestaSolucion),
-                nameof(IssueConComentariosReport.FechaEntregaConstruccion),
-                nameof(IssueConComentariosReport.FechaCierre),
-            };
             var filePath = _excelService.WriteExcel(response, propNames, fileName);
+
             return DownloadExcelFile(filePath, fileName);
         }
 
@@ -100,40 +91,19 @@ namespace EIRA.API.Controllers
         {
             await _cacheRepository.GetUserInfoInCache(new AuthLoginRequestBody
             {
-                UserName = "cesar.figueroa@olsoftware.com",
-                JiraApiKey = "ATATT3xFfGF0A48NnkRMeLReao06WQBy93psM6hYoHvlaQomCCGZQKg9EQnw9N2aYVAm_B7OiIlZjPnhTn8IQuOsL9G7-lniBeCnGozMcQn4VinAF_rJmAz0v_tgjPgIIZba7EvH8Xo9zmSSHBaDQ3_KJqnTTmIa4fmGgTRcmZKnAxQ9r3vckEk=20FB03B8"
+                UserName = "anay.valencia@olsoftware.com",
+                JiraApiKey = "ATATT3xFfGF0YyowoeYenZ1DrzbJGBd5GTYbIgW01yHxTVyegauaSIttYPYj0UxYTnRYzYurXhenMz3CKSHTnMC2Zi1Gyh5Wn1QehRdD1n-DY0z8FkvNb5XEE5DJ3-mb9pbBzds-K7l6pd130ZWWtpj-X-agOSrFyg_lGCtDvGMkiBuGaSCrRZE=C77843FE"
             });
 
             var response = await Mediator.Send(request);
-            var fileName = $"reporte-total-{DateTime.Now.ExportableDateTimeFormat()}.xlsx";
-            var propNames = new string[]
-            {
-                //nameof(IssueConComentariosReport.IssueKeyOrId),
-                //nameof(IssueConComentariosReport.Project),
-                nameof(IssueConComentariosReport.NumeroCaso),
-                nameof(IssueConComentariosReport.ResponsableCliente),
-                //nameof(IssueConComentariosReport.Tarea),
-                nameof(IssueConComentariosReport.Complejidad),
-                nameof(IssueConComentariosReport.Prioridad),
-                nameof(IssueConComentariosReport.Estado),
-                nameof(IssueConComentariosReport.EstadoCliente ), // FULL
-                nameof(IssueConComentariosReport.DescripcionCorta),
-                nameof(IssueConComentariosReport.Compania),
-                nameof(IssueConComentariosReport.Desarrollador),
-                nameof(IssueConComentariosReport.Observaciones),
-                nameof(IssueConComentariosReport.FechaRegistro), // FULL
-                nameof(IssueConComentariosReport.FechaAsignacion ), // FULL
-                nameof(IssueConComentariosReport.FechaEntregaAnalisisN1),
-                nameof(IssueConComentariosReport.FechaEntregaPropuestaSolucion),
-                nameof(IssueConComentariosReport.FechaEntregaConstruccion),
-                nameof(IssueConComentariosReport.FechaEstimadaConstruccion ), // FULL
-                nameof(IssueConComentariosReport.FechaEstimadaPropuestaSolucion ), // FULL
-                nameof(IssueConComentariosReport.FechaCierre),
-                nameof(IssueConComentariosReport.TiempoEstimadoConstruccion), // FULL
-                nameof(IssueConComentariosReport.TiempoEstimadoPropuestaSolucion ), // FULL
-                nameof(IssueConComentariosReport.TiempoEstimadoSoportePruebas), // FULL
 
-            };
+            var projectList = await Mediator.Send(new GetAllProjectsQuery());
+            var projectSelected = projectList.Data.FirstOrDefault(x => x.Id == long.Parse(request.ProjectId ?? "0"));
+            var responseHeadersInfo = await Mediator.Send(new GetFieldsGlobalConfigurationByProjectKeyQuery { ProjectKey = projectSelected.Key });
+            var propNames = responseHeadersInfo?.Data?.Select(x => x.FieldId)?.ToList()?.GetHeadersByFieldNames<IssueConComentariosReport>()?.ToArray();
+
+            var fileName = $"reporte-global-{DateTime.UtcNow.ExportableDateTimeFormat()}.xlsx";
+
             var filePath = _excelService.WriteExcel(response, propNames, fileName);
             return DownloadExcelFile(filePath, fileName);
         }

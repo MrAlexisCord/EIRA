@@ -17,7 +17,7 @@ namespace EIRA.Application.Features.CustomFields.Queries.GetAllowedCustomFields
         public async Task<Response<List<CustomFieldDto>>> Handle(GetAllowedCustomFieldsQuery request, CancellationToken cancellationToken)
         {
             var result = await _customFieldsRepository.GetAllowedFields();
-            return new Response<List<CustomFieldDto>>(result);
+            return new Response<List<CustomFieldDto>>(result?.OrderBy(x=> x.Name)?.ToList());
         }
     }
 }

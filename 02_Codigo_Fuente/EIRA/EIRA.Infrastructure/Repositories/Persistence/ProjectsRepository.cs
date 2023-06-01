@@ -26,7 +26,7 @@ namespace EIRA.Infrastructure.Repositories.Persistence
             var userInfo = _cacheService.GetByKey<UserInfoDTO>(AuthCacheKeys.USER_INFO);
             var projectList = new List<ProjectInfoDTO>();
 
-            var response = await _projectsService.GetAllProjects<List<ProjectsAllResponse>>();
+            var response = (await _projectsService.GetAllProjects<BaseJiraResult<List<ProjectsAllResponse>>>()).Values;
 
 
             if (response is not null && response.Any())
@@ -38,10 +38,16 @@ namespace EIRA.Infrastructure.Repositories.Persistence
 
             foreach (var project in projectList)
             {
-                var responseUsers = await _projectsService.AssignableUsersByProjectId<List<AssignableUsersByProjectResponse>>(project.Key);
-                if (responseUsers is null || !responseUsers.Any(x => x.AccountId == userInfo.AccountId))
+                try
                 {
-                    projectList = projectList?.Where(x => x.Id != project.Id)?.ToList();
+                    var responseUsers = await _projectsService.AssignableUsersByProjectId<List<AssignableUsersByProjectResponse>>(project.Key);
+                    if (responseUsers is null || !responseUsers.Any(x => x.AccountId == userInfo.AccountId))
+                    {
+                        projectList = projectList?.Where(x => x.Id != project.Id)?.ToList();
+                    }
+                }
+                catch (Exception)
+                {
                 }
             }
 
