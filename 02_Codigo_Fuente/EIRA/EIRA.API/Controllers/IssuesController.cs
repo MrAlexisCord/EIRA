@@ -1,6 +1,4 @@
-﻿using DocumentFormat.OpenXml.Bibliography;
-using EIRA.API.Controllers.Common;
-using EIRA.Application.Contracts.Auth.CacheRepository;
+﻿using EIRA.API.Controllers.Common;
 using EIRA.Application.Exceptions;
 using EIRA.Application.Extensions;
 using EIRA.Application.Features.CustomFields.Queries.GetFieldsFollowUpConfigurationByProjectKey;
@@ -8,23 +6,21 @@ using EIRA.Application.Features.CustomFields.Queries.GetFieldsGlobalConfiguratio
 using EIRA.Application.Features.Issues.Commands.UploadIssues;
 using EIRA.Application.Features.Issues.Queries.GetReporteComentarios;
 using EIRA.Application.Features.Projects.Queries.GetAllProjects;
-using EIRA.Application.Models.External;
 using EIRA.Application.Models.Files.Outgoing;
 using EIRA.Application.Models.LogModels;
 using EIRA.Application.Services.Files;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EIRA.API.Controllers
 {
-    //[Authorize]
+    [Authorize]
     public class IssuesController : BaseController
     {
-        private readonly IAuthCacheRepository _cacheRepository;
         private readonly IExcelService _excelService;
 
-        public IssuesController(IAuthCacheRepository cacheRepository, IExcelService excelService)
+        public IssuesController(IExcelService excelService)
         {
-            _cacheRepository = cacheRepository;
             _excelService = excelService;
         }
 
@@ -33,12 +29,6 @@ namespace EIRA.API.Controllers
         {
             if (formFile is null)
                 throw new NullFileException();
-
-            await _cacheRepository.GetUserInfoInCache(new AuthLoginRequestBody
-            {
-                UserName = "anay.valencia@olsoftware.com",
-                JiraApiKey = "ATATT3xFfGF0YyowoeYenZ1DrzbJGBd5GTYbIgW01yHxTVyegauaSIttYPYj0UxYTnRYzYurXhenMz3CKSHTnMC2Zi1Gyh5Wn1QehRdD1n-DY0z8FkvNb5XEE5DJ3-mb9pbBzds-K7l6pd130ZWWtpj-X-agOSrFyg_lGCtDvGMkiBuGaSCrRZE=C77843FE"
-            });
 
             using MemoryStream stream = new();
             await formFile.CopyToAsync(stream);
@@ -68,12 +58,6 @@ namespace EIRA.API.Controllers
         [HttpPost("GetReporteSeguimiento")]
         public async Task<IActionResult> GetReporteSeguimiento(GetReporteComentariosQuery request)
         {
-            await _cacheRepository.GetUserInfoInCache(new AuthLoginRequestBody
-            {
-                UserName = "anay.valencia@olsoftware.com",
-                JiraApiKey = "ATATT3xFfGF0YyowoeYenZ1DrzbJGBd5GTYbIgW01yHxTVyegauaSIttYPYj0UxYTnRYzYurXhenMz3CKSHTnMC2Zi1Gyh5Wn1QehRdD1n-DY0z8FkvNb5XEE5DJ3-mb9pbBzds-K7l6pd130ZWWtpj-X-agOSrFyg_lGCtDvGMkiBuGaSCrRZE=C77843FE"
-            });
-
             var response = await Mediator.Send(request);
             var projectList = await Mediator.Send(new GetAllProjectsQuery());
             var projectSelected = projectList.Data.FirstOrDefault(x => x.Id == long.Parse(request.ProjectId ?? "0"));
@@ -89,12 +73,6 @@ namespace EIRA.API.Controllers
         [HttpPost("GetReporteTotal")]
         public async Task<IActionResult> GetReporteTotal(GetReporteComentariosQuery request)
         {
-            await _cacheRepository.GetUserInfoInCache(new AuthLoginRequestBody
-            {
-                UserName = "anay.valencia@olsoftware.com",
-                JiraApiKey = "ATATT3xFfGF0YyowoeYenZ1DrzbJGBd5GTYbIgW01yHxTVyegauaSIttYPYj0UxYTnRYzYurXhenMz3CKSHTnMC2Zi1Gyh5Wn1QehRdD1n-DY0z8FkvNb5XEE5DJ3-mb9pbBzds-K7l6pd130ZWWtpj-X-agOSrFyg_lGCtDvGMkiBuGaSCrRZE=C77843FE"
-            });
-
             var response = await Mediator.Send(request);
 
             var projectList = await Mediator.Send(new GetAllProjectsQuery());
