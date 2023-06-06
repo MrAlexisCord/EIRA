@@ -20,24 +20,26 @@ namespace EIRA.Infrastructure.Repositories.Persistence
     {
         private readonly IIssuesService _issuesService;
         private readonly IResponsibleCacheRepository _responsibleCacheRepository;
+        private readonly IResponsibleJiraRepository _responsibleJiraRepository;
         private readonly ICustomFieldsCacheRepository _customFieldsCacheRepository;
         private readonly IIssueTypeCacheRepository _issueTypeCacheRepository;
         private readonly IMapper _mapper;
 
-        public IssuesJiraRepository(IIssuesService issuesService, IResponsibleCacheRepository responsibleCacheRepository, IMapper mapper, ICustomFieldsCacheRepository customFieldsCacheRepository, IIssueTypeCacheRepository issueTypeCacheRepository)
+        public IssuesJiraRepository(IIssuesService issuesService, IResponsibleCacheRepository responsibleCacheRepository, IMapper mapper, ICustomFieldsCacheRepository customFieldsCacheRepository, IIssueTypeCacheRepository issueTypeCacheRepository, IResponsibleJiraRepository responsibleJiraRepository)
         {
             _issuesService = issuesService;
             _responsibleCacheRepository = responsibleCacheRepository;
             _mapper = mapper;
             _customFieldsCacheRepository = customFieldsCacheRepository;
             _issueTypeCacheRepository = issueTypeCacheRepository;
+            _responsibleJiraRepository = responsibleJiraRepository;
         }
 
         public async Task<List<JiraUploadIssueErrorLog>> PostIssuesAsync(List<IssuesIncomingFile> source, RequestTypeTarget requestTypeTarget)
         {
             var logsError = new List<JiraUploadIssueErrorLog>();
 
-            var responsibleList = await _responsibleCacheRepository.GetCachedResponsibleList();
+            var responsibleList = await _responsibleJiraRepository.GetResponsibleList();
             var issueTypeConfiguration = await _issueTypeCacheRepository.GetIssueTypeConfigurationFromCache();
 
             if (issueTypeConfiguration is null || !issueTypeConfiguration.Any())
