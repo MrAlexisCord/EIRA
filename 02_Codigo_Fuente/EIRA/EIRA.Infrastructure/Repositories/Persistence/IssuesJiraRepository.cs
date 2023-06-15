@@ -11,7 +11,6 @@ using EIRA.Application.Models.LogModels;
 using EIRA.Application.Services.API.JiraAPIV3;
 using EIRA.Application.Statics.Enumerations;
 using EIRA.Application.Statics.Operations;
-using EIRA.Application.Validators;
 using System.Web;
 
 namespace EIRA.Infrastructure.Repositories.Persistence
@@ -138,7 +137,6 @@ namespace EIRA.Infrastructure.Repositories.Persistence
             }
         }
 
-
         private async Task UpdateProcess(IssueUpdateRequest body, Dictionary<string, object> payload, List<MinimalIssue> issuesInJiraByAranda, List<JiraUploadIssueErrorLog> logsError, string comentarios = null)
         {
 
@@ -252,7 +250,6 @@ namespace EIRA.Infrastructure.Repositories.Persistence
         public async Task<List<IssueConComentariosReport>> GetIssuesByProjectId(string projectId, List<string> statusIds)
         {
             var response = new List<Issue>();
-            //string jqlStatement = "project%3DSE+AND+%22Fecha+Apertura%5BDate%5D%22+%3E+%222022-02-22%22+AND+%22Fecha+Apertura%5BDate%5D%22+%3E+%222023-01-10%22"
             var pageNumber = 0;
             var maxResults = 100;
             var statusIdsJql = string.Join(",", statusIds);
@@ -262,7 +259,6 @@ namespace EIRA.Infrastructure.Repositories.Persistence
                 var starAt = pageNumber * maxResults;
                 var paginationString = $"&startAt={starAt}&maxResults={maxResults}";
                 string jqlStatement = $"project=\"{projectId}\" AND status in ({statusIdsJql})";
-                //string jqlStatement = $"project=SE AND \"Fecha Apertura[Date]\" >= \"{startDate:yyyy-MM-dd}\" AND \"Fecha Apertura[Date]\" <= \"{endDate:yyyy-MM-dd}\"";
                 string encodedJqlStatement = $"{HttpUtility.UrlEncode(jqlStatement)}{paginationString}";
                 var responseQuery = await _issuesService.GetIssuesByJQL<IssueWrapperResponse>(encodedJqlStatement);
                 if (responseQuery != null && responseQuery.Issues != null && responseQuery.Issues.Any())
@@ -294,13 +290,14 @@ namespace EIRA.Infrastructure.Repositories.Persistence
             }
 
             return response?.OrderBy(x => x.Prioridad)?.ThenBy(x => x.ResponsableCliente)?.ToList();
-
         }
 
         private async Task<IEnumerable<string>> GetIssueComments(string idOrKey)
         {
             var issueComments = await _issuesService.GetCommentsByIssueIdOrKey<IssueCommentResponse>(idOrKey);
-            var issueCommentsFormatted = issueComments?.Comments?.Select(x => x?.Body?.Content?.SelectMany(y => y?.Content)?.Select(z => z?.Text))?.SelectMany(t => t);
+            var issueCommentsFormatted = issueComments?.Comments?.Select(x => new { FechaCreacion = x.Created, x?.Body?.Content })
+                ?.OrderByDescending(x => x.FechaCreacion)
+                ?.Select(y => $"{y?.FechaCreacion.ToString("dd/MM/yyyy")}: {y?.Content?.FirstOrDefault()?.Content?.FirstOrDefault()?.Text}");
             issueCommentsFormatted = issueCommentsFormatted.Where(x => !string.IsNullOrEmpty(x));
             return issueCommentsFormatted;
         }

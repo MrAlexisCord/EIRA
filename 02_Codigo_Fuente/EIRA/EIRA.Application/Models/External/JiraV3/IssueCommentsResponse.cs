@@ -36,10 +36,16 @@ namespace EIRA.Application.Models.External.JiraV3
         public Author UpdateAuthor { get; set; }
 
         [JsonProperty("created")]
-        public string Created { get; set; }
+        public DateTime Created { get; set; }
 
         [JsonProperty("updated")]
-        public string Updated { get; set; }
+        public DateTime Updated { get; set; }
+
+        //[JsonProperty("created")]
+        //public string Created { get; set; }
+
+        //[JsonProperty("updated")]
+        //public string Updated { get; set; }
 
         [JsonProperty("jsdPublic")]
         public bool JsdPublic { get; set; }
