@@ -1,4 +1,5 @@
-﻿using EIRA.Application.Models.External.JiraV3.TypeOfPropertiesClasses;
+﻿using EIRA.Application.DTOs;
+using EIRA.Application.Models.External.JiraV3.TypeOfPropertiesClasses;
 using Newtonsoft.Json;
 
 namespace EIRA.Application.Models.External.JiraV3
@@ -126,6 +127,17 @@ namespace EIRA.Application.Models.External.JiraV3
         public DateTime? FechaEstimadaPropuestaSolucion { get; set; }
 
 
+        // Nuevos
+        [JsonProperty("customfield_10085")]
+        public TimeTo TimeToAttention { get; set; }
+
+        [JsonProperty("customfield_10045")]
+        public TimeTo TimeToResolution { get; set; }
+
+        [JsonProperty("customfield_10070")]
+        public TimeTo TiempoEntregaAnalisis { get; set; }
+
+
         public class ProjectModel
         {
             [JsonProperty("id")]
@@ -135,5 +147,71 @@ namespace EIRA.Application.Models.External.JiraV3
             [JsonProperty("name")]
             public string Name { get; set; }
         }
+    }
+
+    public partial class TimeTo
+    {
+        [JsonProperty("id")]
+        public long Id { get; set; }
+
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        //[JsonProperty("_links")]
+        //public RequestTypeLinks Links { get; set; }
+
+        [JsonProperty("completedCycles")]
+        public List<Cycle> CompletedCycles { get; set; }
+
+        [JsonProperty("ongoingCycle", NullValueHandling = NullValueHandling.Ignore)]
+        public Cycle OngoingCycle { get; set; }
+
+        [JsonProperty("slaDisplayFormat")]
+        public string SlaDisplayFormat { get; set; }
+    }
+
+    public partial class Cycle
+    {
+        [JsonProperty("startTime")]
+        public StatusDate StartTime { get; set; }
+
+        [JsonProperty("breachTime")]
+        public StatusDate BreachTime { get; set; }
+
+        [JsonProperty("breached")]
+        public bool Breached { get; set; }
+
+        [JsonProperty("paused", NullValueHandling = NullValueHandling.Ignore)]
+        public bool? Paused { get; set; }
+
+        [JsonProperty("withinCalendarHours", NullValueHandling = NullValueHandling.Ignore)]
+        public bool? WithinCalendarHours { get; set; }
+
+        //[JsonProperty("goalDuration")]
+        //public ElapsedTime GoalDuration { get; set; }
+
+        //[JsonProperty("elapsedTime")]
+        //public ElapsedTime ElapsedTime { get; set; }
+
+        //[JsonProperty("remainingTime")]
+        //public ElapsedTime RemainingTime { get; set; }
+
+        [JsonProperty("stopTime", NullValueHandling = NullValueHandling.Ignore)]
+        public StatusDate StopTime { get; set; }
+    }
+
+    public partial class StatusDate
+    {
+        [JsonProperty("iso8601")]
+        public string Iso8601 { get; set; }
+
+        [JsonProperty("jira")]
+        public string Jira { get; set; }
+
+        [JsonProperty("friendly")]
+        public string Friendly { get; set; }
+
+        [JsonProperty("epochMillis")]
+        public long EpochMillis { get; set; }
     }
 }

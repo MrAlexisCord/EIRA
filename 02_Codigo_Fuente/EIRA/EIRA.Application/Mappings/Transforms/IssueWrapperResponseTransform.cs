@@ -68,6 +68,11 @@ namespace EIRA.Application.Mappings.Transforms
                 ResponsablesMultiplesTripleaSUI = responsablesMultiplesTripleaSUIString,
                 ResponsablesMultiplesTripleaCARTAS = responsablesMultiplesTripleaCartasString,
                 Summary = issue?.Fields?.Summary ?? string.Empty,
+
+                // TIME TO
+                TimeToAttention = issue?.Fields?.TimeToAttention?.CompletedCycles?.FirstOrDefault()?.BreachTime?.Friendly ?? string.Empty,
+                TimeToResolution = issue?.Fields?.TimeToResolution?.CompletedCycles?.FirstOrDefault()?.BreachTime?.Friendly ?? string.Empty,
+                TiempoEntregaAnalisis = issue?.Fields?.TiempoEntregaAnalisis?.CompletedCycles?.FirstOrDefault()?.BreachTime?.Friendly ?? string.Empty,
             };
         }
     }

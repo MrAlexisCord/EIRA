@@ -133,5 +133,19 @@ namespace EIRA.Application.Models.Files.Outgoing
         [JsonProperty("customfield_10109")]
         [ReportHeader("Fecha Solución")]
         public DateTime? FechaSolucion { get; set; }
+
+
+        // TIME TO
+        [JsonProperty("customfield_10085")]
+        [ReportHeader("Time To Attention")]
+        public string TimeToAttention { get; set; }
+
+        [JsonProperty("customfield_10045")]
+        [ReportHeader("Time To Resolution")]
+        public string TimeToResolution { get; set; }
+
+        [JsonProperty("customfield_10070")]
+        [ReportHeader("Tiempo de entrega de análisis")]
+        public string TiempoEntregaAnalisis { get; set; }
     }
 }
